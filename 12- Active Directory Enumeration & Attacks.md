@@ -1773,7 +1773,7 @@ PowerShell Tool.
 
 ---
 
-# LAPSToolkit
+## LAPSToolkit
 
 أداة خاصة بـ
 
@@ -1801,7 +1801,7 @@ Microsoft بتخلي كل جهاز
 
 ---
 
-# smbmap
+## smbmap
 
 بيجيب
 
@@ -1819,7 +1819,7 @@ Microsoft بتخلي كل جهاز
 
 ---
 
-# psexec.py
+## psexec.py
 
 من Impacket.
 
@@ -1835,7 +1835,7 @@ Microsoft بتخلي كل جهاز
 
 ---
 
-# wmiexec.py
+## wmiexec.py
 
 زي psexec
 
@@ -1849,7 +1849,7 @@ WMI.
 
 ---
 
-# Snaffler
+## Snaffler
 
 اسمه غريب 😂
 
@@ -1871,7 +1871,7 @@ Secrets
 
 ---
 
-# smbserver.py
+## smbserver.py
 
 يشغل SMB Server عندك.
 
@@ -1887,7 +1887,7 @@ Secrets
 
 ---
 
-# setspn.exe
+## setspn.exe
 
 أداة من Microsoft.
 
@@ -1903,7 +1903,7 @@ SPNs
 
 ---
 
-# Mimikatz
+## Mimikatz
 
 ملك أدوات الويندوز.
 
@@ -1931,7 +1931,7 @@ Silver Ticket
 
 ---
 
-# secretsdump.py
+## secretsdump.py
 
 من Impacket.
 
@@ -1949,7 +1949,7 @@ NTLM Hashes
 
 ---
 
-# evil-winrm
+## evil-winrm
 
 لو WinRM مفتوح.
 
@@ -1963,7 +1963,7 @@ NTLM Hashes
 
 ---
 
-# mssqlclient.py
+## mssqlclient.py
 
 يدخل على
 
@@ -1977,7 +1977,7 @@ Microsoft SQL Server.
 
 ---
 
-# noPac.py
+## noPac.py
 
 Exploit مشهور.
 
@@ -1999,7 +1999,7 @@ Domain Admin.
 
 ---
 
-# rpcdump.py
+## rpcdump.py
 
 يعرض
 
@@ -2011,7 +2011,7 @@ RPC Endpoints.
 
 ---
 
-# CVE-2021-1675.py
+## CVE-2021-1675.py
 
 PoC
 
@@ -2021,7 +2021,7 @@ PrintNightmare.
 
 ---
 
-# ntlmrelayx.py
+## ntlmrelayx.py
 
 أداة Relay.
 
@@ -2033,7 +2033,7 @@ PrintNightmare.
 
 ---
 
-# PetitPotam.py
+## PetitPotam.py
 
 أداة بتجبر جهاز ويندوز
 
@@ -2047,7 +2047,7 @@ NTLM Relay.
 
 ---
 
-# gettgtpkinit.py
+## gettgtpkinit.py
 
 تتعامل مع
 
@@ -2059,7 +2059,7 @@ TGT.
 
 ---
 
-# getnthash.py
+## getnthash.py
 
 لو معاك TGT.
 
@@ -2069,7 +2069,7 @@ NT Hash.
 
 ---
 
-# adidnsdump
+## adidnsdump
 
 يطلع كل
 
@@ -2085,7 +2085,7 @@ DNS Zone Transfer.
 
 ---
 
-# gpp-decrypt
+## gpp-decrypt
 
 زمان
 
@@ -2101,7 +2101,7 @@ Group Policy
 
 ---
 
-# GetNPUsers.py
+## GetNPUsers.py
 
 دي خاصة بـ
 
@@ -2127,7 +2127,7 @@ Hashcat.
 
 ---
 
-# lookupsid.py
+## lookupsid.py
 
 يعمل
 
@@ -2145,7 +2145,7 @@ Groups
 
 ---
 
-# ticketer.py
+## ticketer.py
 
 يصنع
 
@@ -2161,7 +2161,7 @@ Silver Ticket.
 
 ---
 
-# raiseChild.py
+## raiseChild.py
 
 لو فيه
 
@@ -2181,7 +2181,7 @@ Parent Domain.
 
 ---
 
-# Active Directory Explorer
+## Active Directory Explorer
 
 برنامج GUI.
 
@@ -2217,7 +2217,7 @@ Attributes
 
 ---
 
-# PingCastle
+## PingCastle
 
 من أشهر أدوات
 
@@ -2235,7 +2235,7 @@ Security Audit.
 
 ---
 
-# Group3r
+## Group3r
 
 خاص بالـ GPO.
 
@@ -2251,7 +2251,7 @@ Group Policy.
 
 ---
 
-# ADRecon
+## ADRecon
 
 يجمع معلومات ضخمة عن الدومين.
 
@@ -2288,7 +2288,7 @@ Excel.
 
 ---
 
-# ملخص سريع (احفظه)
+## ملخص سريع (احفظه)
 
 |الأداة|وظيفتها الأساسية|
 |---|---|
@@ -2945,7 +2945,7 @@ Subnet.
 
 ---
 
-# ممنوع تعمل
+## ممنوع تعمل
 
 Phishing.
 
@@ -2973,7 +2973,7 @@ Social Engineering.
 
 ---
 
-# Real Website
+## Real Website
 
 بيقول
 
@@ -3001,7 +3001,7 @@ Passive Enumeration.
 
 ---
 
-# Passive Enumeration
+## Passive Enumeration
 
 يعني
 
@@ -3105,7 +3105,7 @@ Run Tool.
 
 ---
 
-# Untrusted Insider Perspective
+## Untrusted Insider Perspective
 
 يعني
 
@@ -3131,7 +3131,7 @@ Run Tool.
 
 ---
 
-# No advance information
+## No advance information
 
 يعني
 
@@ -3153,7 +3153,7 @@ Network Diagram.
 
 ---
 
-# Goal
+## Goal
 
 الهدف.
 
@@ -3207,7 +3207,7 @@ Domain Admin.
 
 ---
 
-# Computer systems will not be interrupted
+## Computer systems will not be interrupted
 
 يعني
 
@@ -3239,7 +3239,7 @@ Denial of Service.
 
 ---
 
-# Password Testing
+## Password Testing
 
 بيقول
 
@@ -3287,7 +3287,7 @@ Hashcat.
 
 ---
 
-# Confidentiality
+## Confidentiality
 
 بيقول
 
@@ -3313,7 +3313,7 @@ Hashcat.
 
 ---
 
-# ليه ورانا الـ Scope ده؟
+## ليه ورانا الـ Scope ده؟
 
 بيقول
 
@@ -3361,7 +3361,7 @@ Hashcat.
 
 ---
 
-# The Stage Is Set
+## The Stage Is Set
 
 دي جملة معناها
 
@@ -3390,7 +3390,7 @@ Hashcat.
 
 ---
 
-# Passive External Enumeration
+## Passive External Enumeration
 
 ودي أول خطوة.
 
@@ -3410,7 +3410,7 @@ Hashcat.
 
 ---
 
-# ملخص السيناريو كله
+## ملخص السيناريو كله
 
 تخيل نفسك دخلت أول يوم شغل في شركة **CAT-5 Security**، ومدير الفريق قالك:
 
@@ -4452,7 +4452,7 @@ BGP Toolkit.
 
 ---
 
-# ليه مهم؟
+## ليه مهم؟
 
 ---
 
@@ -4464,7 +4464,7 @@ BGP Toolkit.
 
 ---
 
-# Smaller Companies
+## Smaller Companies
 
 الشركات الصغيرة
 
@@ -4480,7 +4480,7 @@ ASN.
 
 ---
 
-# Scope
+## Scope
 
 لو لقيت
 
@@ -4496,7 +4496,7 @@ IP
 
 ---
 
-# Third Party
+## Third Party
 
 يعني
 
@@ -4524,7 +4524,7 @@ Azure.
 
 ---
 
-# DNS
+## DNS
 
 الموديول بيقول
 
@@ -4556,7 +4556,7 @@ Internal Hostnames.
 
 ---
 
-# Example
+## Example
 
 لقى
 
@@ -4586,7 +4586,7 @@ DNS Server.
 
 ---
 
-# nslookup
+## nslookup
 
 الأمر
 
@@ -4632,7 +4632,7 @@ In Scope.
 
 ---
 
-# Public Data
+## Public Data
 
 زي
 
@@ -4658,7 +4658,7 @@ OSINT.
 
 ---
 
-# SharePoint Example
+## SharePoint Example
 
 لقي
 
@@ -4688,7 +4688,7 @@ SharePoint.
 
 ---
 
-# PDF Hunting
+## PDF Hunting
 
 عمل
 
@@ -4730,7 +4730,7 @@ filetype:pdf inurl:inlanefreight.com
 
 ---
 
-# نصيحة مهمة جدًا
+## نصيحة مهمة جدًا
 
 الموديول قال:
 
@@ -4762,7 +4762,7 @@ filetype:pdf inurl:inlanefreight.com
 
 ---
 
-# Email Hunting
+## Email Hunting
 
 عمل
 
@@ -4806,7 +4806,7 @@ first.last.
 
 ---
 
-# Username Harvesting
+## Username Harvesting
 
 يعني
 
@@ -4838,7 +4838,7 @@ firstl
 
 ---
 
-# Credential Hunting
+## Credential Hunting
 
 باستخدام
 
@@ -4892,7 +4892,7 @@ Starlight1982_!
 
 ---
 
-# ليه كل ده مهم؟
+## ليه كل ده مهم؟
 
 المؤلف بيقول عن تجربة:
 
@@ -4926,7 +4926,7 @@ DeHashed
 
 ---
 
-# أهم جملة في الصفحة كلها
+## أهم جملة في الصفحة كلها
 
 > **بمجرد ما تجيب Credentials حتى لو Domain User عادي، تقدر تعمل معظم عمليات الـ Active Directory Enumeration، بل وكمان تنفذ عدد كبير من الهجمات.**
 
@@ -4946,3 +4946,2248 @@ DeHashed
 6. **استنتج معلومات مفيدة** → أنواع السيرفرات، البرامج، الخدمات، وسائل الحماية.
 7. **كوّن Wordlists** → أسماء مستخدمين وكلمات مرور محتملة.
 8. **بعد كده فقط** تبدأ الـ **Active Enumeration** والهجمات المسموح بيها داخل الـ Scope.
+
+
+# Layer 5
+---
+
+## أولًا: إحنا بنعمل إيه أصلًا؟
+
+إنت داخل تعمل **Internal Penetration Test** على شركة اسمها:
+
+> **Inlanefreight**
+
+يعني الشركة سمحتلك تدخل جوه الشبكة الداخلية بتاعتها وتشوف لو فيه ثغرات.
+
+الهدف مش إنك تخترق وخلاص.
+
+الهدف إنك تعرف:
+
+- الأجهزة الموجودة
+    
+- السيرفرات
+    
+- الـ Domain Controller
+    
+- المستخدمين
+    
+- الخدمات
+    
+- الثغرات
+    
+- إزاي تقدر تاخد أول Access
+    
+
+وده اسمه:
+
+> Initial Enumeration
+
+يعني أول مرحلة فى اختبار الاختراق.
+
+---
+
+## Setting Up
+
+الجزء ده بيقول العميل ممكن يديلك البيئة بأكتر من شكل.
+
+زى مثلًا:
+
+---
+
+## 1) Linux VM
+
+يعنى يديلك VM جاهز جوه الشبكة.
+
+زى Kali أو Parrot.
+
+إنت هتدخل عليه SSH.
+
+---
+
+## 2) جهاز حقيقى
+
+يحط جهاز صغير فى الشركة.
+
+زى Raspberry Pi.
+
+يوصل بالنت ويربط عندك VPN.
+
+---
+
+## 3) تروح الشركة بنفسك
+
+توصل اللاب بتاعك فى سويتش الشركة.
+
+---
+
+## 4) AWS أو Azure VM
+
+يعنى فيه سيرفر فى كلاود لكن داخل على الشبكة الداخلية.
+
+---
+
+## 5) VPN
+
+يديك VPN تدخل بيه.
+
+وده أقل صلاحيات شوية.
+
+لأن فيه حاجات مش هتقدر تعملها زى:
+
+LLMNR Poisoning
+
+---
+
+## 6) جهاز الموظف نفسه
+
+يديك Windows Workstation.
+
+تشتغل منه.
+
+---
+
+## Grey Box ولا Black Box؟
+
+دى أنواع الاختبارات.
+
+---
+
+## Black Box
+
+يعنى متعرفش أى حاجة.
+
+زى الهاكر الحقيقى.
+
+---
+
+## Grey Box
+
+يعطوك شوية معلومات.
+
+زى:
+
+Network Range
+
+أو
+
+IP Range
+
+وده اللى حصل هنا.
+
+---
+
+## العميل إدالك إيه؟
+
+العميل قالك:
+
+عندك:
+
+Linux VM
+
+Windows VM
+
+Network Range
+
+```
+172.16.5.0/23
+```
+
+وبس.
+
+---
+
+يعنى معرفكش:
+
+- الدومين
+    
+- أسماء الأجهزة
+    
+- اليوزرز
+    
+- السيرفرات
+    
+
+كل ده هتكتشفه بنفسك.
+
+---
+
+## المطلوب منك
+
+المطلوب تعمل Enumeration.
+
+يعنى تعرف:
+
+## Hosts
+
+مين موجود؟
+
+---
+
+## Services
+
+كل جهاز فاتح Ports إيه؟
+
+---
+
+## Vulnerabilities
+
+فى ثغرات؟
+
+---
+
+## Users
+
+مين موجود فى الدومين؟
+
+---
+
+## Domain Controller
+
+فين؟
+
+---
+
+## ليه بنبدأ من غير Credentials؟
+
+علشان ده واقعى.
+
+لو هاكر دخل الشركة.
+
+هيكون معاه Username؟
+
+لا.
+
+هيبدأ من الصفر.
+
+---
+
+## الحاجات المهمة اللى لازم تدورها عليها
+
+الكاتب عامل جدول.
+
+---
+
+## AD Users
+
+ليه؟
+
+علشان بعدين تعمل
+
+Password Spraying
+
+---
+
+## AD Joined Computers
+
+زى
+
+Domain Controller
+
+File Server
+
+Exchange
+
+SQL
+
+---
+
+## Key Services
+
+زى
+
+Kerberos
+
+LDAP
+
+DNS
+
+SMB
+
+---
+
+## Vulnerable Hosts
+
+يعنى جهاز قديم.
+
+أو عليه ثغرة.
+
+---
+
+## لازم يبقى عندك Methodology
+
+يعنى متشتغلش عشوائى.
+
+الكاتب بيقول:
+
+لو دخلت Active Directory بدون خطة...
+
+هتتايه.
+
+لأن البيانات ضخمة جدًا.
+
+---
+
+فبيعمل ترتيب.
+
+---
+
+## الأول
+
+Passive Enumeration
+
+---
+
+بعدها
+
+Active Enumeration
+
+---
+
+بعدها
+
+Analyze
+
+---
+
+بعدها
+
+Attack
+
+---
+
+## Passive Enumeration
+
+يعنى تجمع معلومات
+
+بدون ما تكلم الأجهزة.
+
+زى إنك تسمع الترافيك.
+
+---
+
+الأدوات:
+
+Wireshark
+
+tcpdump
+
+Responder
+
+---
+
+## Wireshark
+
+الكاتب قال:
+
+شغل Wireshark.
+
+```
+sudo wireshark
+```
+
+---
+
+ليه؟
+
+علشان تسمع الشبكة.
+
+---
+
+إيه اللى ظهر؟
+
+ARP
+
+MDNS
+
+---
+
+## يعنى إيه ARP؟
+
+ARP
+
+هو بروتوكول بيقول:
+
+> مين صاحب الـ IP ده؟
+
+لو جهاز بيسأل:
+
+```
+مين عنده
+172.16.5.25؟
+```
+
+يبقى فيه جهاز اسمه
+
+172.16.5.25
+
+موجود.
+
+---
+
+يبقى من غير ما تعمل Scan
+
+عرفت Host موجود.
+
+---
+
+ظهر مثلًا:
+
+```
+172.16.5.5
+172.16.5.25
+172.16.5.50
+```
+
+---
+
+## MDNS
+
+ده بروتوكول Local Name Resolution.
+
+يعنى بدل ما يقول:
+
+```
+172.16.5.125
+```
+
+يقول:
+
+```
+ACADEMY-EA-WEB01
+```
+
+فأنت كده عرفت:
+
+اسم الجهاز.
+
+---
+
+وده مهم جدًا.
+
+---
+
+## لو مفيش GUI؟
+
+استعمل:
+
+tcpdump
+
+```
+sudo tcpdump -i ens224
+```
+
+---
+
+وده بيعمل نفس الفكرة.
+
+يسمع الترافيك.
+
+---
+
+## ليه نحفظ PCAP؟
+
+علشان:
+
+ترجعله بعدين.
+
+يمكن تلاقى معلومات فاتتك.
+
+وكمان تحطه فى التقرير.
+
+---
+
+## بعد كده استخدم Responder
+
+Responder مشهور جدًا.
+
+لكن هنا
+
+مش بنعمل Poisoning.
+
+---
+
+احنا بنستخدم
+
+Analyze Mode
+
+```
+sudo responder -I ens224 -A
+```
+
+لاحظ:
+
+```
+-A
+```
+
+يعنى
+
+Analyze فقط.
+
+---
+
+يعنى:
+
+يسمع.
+
+لكن ميبعتش Responses.
+
+---
+
+وده آمن.
+
+---
+
+Responder اكتشف Hosts جديدة.
+
+يبقى عمل Target List أكبر.
+
+---
+
+## بعد Passive
+
+نبدأ Active
+
+---
+
+## باستخدام fping
+
+```
+fping -asgq 172.16.5.0/23
+```
+
+تعالى نشرح كل Flag.
+
+---
+
+### -a
+
+اعرض الأجهزة الحية فقط
+
+Alive
+
+---
+
+### -s
+
+اعرض Statistics
+
+---
+
+### -g
+
+Generate Range
+
+يعنى
+
+```
+172.16.5.0/23
+```
+
+يبقى يعمل Scan لكل الـ Range.
+
+---
+
+### -q
+
+Quiet
+
+ميطبعش كل محاولة.
+
+---
+
+الناتج:
+
+```
+172.16.5.5
+
+172.16.5.25
+
+172.16.5.50
+```
+
+...
+
+يعنى دول ردوا.
+
+---
+
+بعدها قال:
+
+```
+9 alive
+```
+
+يبقى فيه
+
+9 أجهزة.
+
+---
+
+## بعد كده
+
+Nmap
+
+---
+
+```
+sudo nmap -A -iL hosts.txt
+```
+
+---
+
+يعنى إيه؟
+
+---
+
+## -A
+
+Aggressive Scan
+
+وده بيعمل كذا حاجة مرة واحدة.
+
+زى:
+
+OS Detection
+
+Version Detection
+
+Scripts
+
+Traceroute
+
+---
+
+## -iL
+
+يعنى اقرأ الـ IPs
+
+من ملف.
+
+---
+
+## -oN
+
+احفظ النتيجة.
+
+---
+
+## النتيجة
+
+شاف الجهاز:
+
+```
+172.16.5.5
+```
+
+فاتح Ports كتير.
+
+---
+
+## 53
+
+DNS
+
+---
+
+## 88
+
+Kerberos
+
+---
+
+وجود Kerberos مع LDAP
+
+غالبًا
+
+ده Domain Controller.
+
+---
+
+## 389
+
+LDAP
+
+---
+
+## 636
+
+Secure LDAP
+
+---
+
+## 445
+
+SMB
+
+---
+
+## 3268
+
+Global Catalog
+
+---
+
+## 3389
+
+RDP
+
+---
+
+## 5357
+
+HTTP API
+
+---
+
+## منين عرف إنه Domain Controller؟
+
+بص على:
+
+```
+DNS:
+ACADEMY-EA-DC01
+```
+
+وكمان:
+
+```
+LDAP
+```
+
+وكمان:
+
+```
+Kerberos
+```
+
+كلهم موجودين.
+
+يبقى ده DC.
+
+---
+
+## Host تانى
+
+```
+172.16.5.100
+```
+
+لقى عليه:
+
+IIS
+
+SQL Server
+
+SMB
+
+---
+
+لكن لاحظ:
+
+```
+Windows Server 2008
+```
+
+وده قديم جدًا.
+
+---
+
+إيه المشكلة؟
+
+أنظمة قديمة.
+
+يبقى ممكن تكون مصابة بثغرات قديمة.
+
+زى:
+
+- EternalBlue
+    
+- MS08-067
+    
+- BlueKeep
+    
+
+---
+
+لكن الكاتب بيحذر.
+
+متستغلهاش مباشرة.
+
+لازم العميل يوافق.
+
+لأن ممكن السيرفر يقع.
+
+---
+
+## بعد كده
+
+بدأ يدور على Users
+
+---
+
+لأن مفيش Credentials.
+
+---
+
+هيستخدم
+
+Kerbrute.
+
+---
+
+## Kerbrute
+
+دى أداة
+
+بتسأل الـ Domain Controller:
+
+```
+هل اليوزر ده موجود؟
+```
+
+---
+
+من غير Password.
+
+---
+
+وده اسمه
+
+Username Enumeration
+
+---
+
+الميزة؟
+
+هادئة.
+
+---
+
+ليه؟
+
+لأن
+
+Kerberos Pre-auth Failures
+
+غالبًا
+
+مش بتتسجل فى Logs.
+
+---
+
+يبقى تقدر تجرب آلاف اليوزرز.
+
+---
+
+## حمل الأداة
+
+```
+git clone
+```
+
+---
+
+بعدها
+
+```
+make all
+```
+
+---
+
+علشان يبنى نسخة Linux
+
+Windows
+
+Mac
+
+---
+
+بعدها
+
+```
+mv
+```
+
+يحطها فى
+
+```
+/usr/local/bin
+```
+
+علشان تشتغل من أى مكان.
+
+---
+
+## الاستخدام
+
+```
+kerbrute userenum
+```
+
+---
+
+```
+-d
+```
+
+اسم الدومين
+
+---
+
+```
+--dc
+```
+
+IP بتاع Domain Controller
+
+---
+
+بعدها
+
+```
+jsmith.txt
+```
+
+Wordlist
+
+---
+
+طلع:
+
+```
+VALID USERNAME
+```
+
+```
+jjones
+```
+
+```
+sbrown
+```
+
+...
+
+---
+
+فى الآخر قال:
+
+```
+56 valid users
+```
+
+---
+
+يعنى عرف
+
+56 يوزر حقيقى.
+
+---
+
+ودول هيستخدمهم بعدين فى
+
+Password Spraying.
+
+---
+
+## بعد كده بيتكلم عن SYSTEM
+
+لو قدرت تجيب
+
+```
+NT AUTHORITY\SYSTEM
+```
+
+على جهاز Join فى الدومين.
+
+يبقى تقريبًا كأن معاك User فى الدومين.
+
+---
+
+ليه؟
+
+لأن الجهاز نفسه عنده
+
+Computer Account
+
+يقدر يكلم Active Directory.
+
+---
+
+## إزاى أوصل لـ SYSTEM؟
+
+أمثلة:
+
+- EternalBlue
+    
+- BlueKeep
+    
+- Juicy Potato
+    
+- PsExec
+    
+- Local Privilege Escalation
+    
+
+---
+
+لو وصلت لـ SYSTEM
+
+تقدر:
+
+- تشغل BloodHound
+    
+- تعمل Kerberoasting
+    
+- تعمل ASREPRoasting
+    
+- تجمع NTLM Hashes
+    
+- Token Impersonation
+    
+- ACL Abuse
+    
+
+---
+
+## آخر نقطة مهمة جدًا
+
+الكاتب بيحذر:
+
+متستخدمش أى Tool وخلاص.
+
+لازم تعرف:
+
+هل هى:
+
+- هادية؟
+    
+- بتعمل DoS؟
+    
+- بتوقع السيرفر؟
+    
+- بتشغل Exploits؟
+    
+
+لأن ممكن توقف Production Server عند العميل.
+
+وده كارثة.
+
+---
+
+## الميثودولوجي الكامل للجزء ده
+
+1. **ابدأ من غير Credentials.**
+    
+2. **اعمل Passive Enumeration** باستخدام Wireshark أو tcpdump أو Responder (Analyze Mode).
+    
+3. **اجمع الـ IPs وأسماء الأجهزة** من ARP وMDNS.
+    
+4. **اعمل Active Discovery** باستخدام `fping` لمعرفة الأجهزة الحية.
+    
+5. **اعمل Nmap Scan** لمعرفة الـ Ports والخدمات وأنظمة التشغيل.
+    
+6. **حدد الأجهزة المهمة** مثل Domain Controller وSQL وWeb وFile Servers.
+    
+7. **ابحث عن الأجهزة القديمة أو الضعيفة** التى قد توفر نقطة دخول.
+    
+8. **اعمل Username Enumeration** باستخدام Kerbrute للحصول على قائمة مستخدمين صحيحة.
+    
+9. **وثّق كل حاجة** (IPs، أسماء الأجهزة، الخدمات، النتائج) لأنك هترجع لها فى المراحل التالية.
+    
+10. **بعد ما يبقى عندك Users أو Foothold** تبدأ مرحلة استغلال الدومين (Password Spraying، LLMNR Poisoning، BloodHound، Kerberoasting... إلخ).
+
+# Layer 6
+## LLMNR / NBT-NS Poisoning from Linux
+
+بعد ما خلصنا مرحلة الـ Initial Enumeration وبقينا عارفين شوية معلومات عن الدومين (زي الـ Users، الـ Groups، الأجهزة الموجودة، والـ Domain Controller)، هنبدأ أول خطوة فعلية للحصول على Credentials.
+
+في الجزء ده هنستخدم طريقتين:
+
+- Network Poisoning
+- Password Spraying (هيتشرح بعدين)
+
+الهدف الأساسي هو إننا نحصل على Username و Password أو Password Hash لمستخدم داخل الدومين، بحيث يبقى عندنا Foothold (أول نقطة دخول) ونقدر نكمل الـ Enumeration باستخدام Credentials حقيقية.
+
+---
+
+## يعني إيه Foothold؟
+
+الـ Foothold هو أول Access بنحصل عليه داخل الشبكة.
+
+بدل ما نبقى Anonymous ومش معانا أي صلاحيات، يبقى معانا User حقيقي نقدر نستخدمه في باقى الهجوم.
+
+---
+
+## Man In The Middle (MITM)
+
+الهجوم ده يعتبر Man In The Middle Attack.
+
+يعني بدل ما الاتصال يكون:
+
+User → Server
+
+يبقى:
+
+User → Attacker → Server
+
+إنت بتقف في النص وتخدع الضحية بحيث تبعتلك بياناتها بدل السيرفر الحقيقي.
+
+---
+
+## LLMNR & NBT-NS
+
+الاتنين دول بروتوكولات موجودين في Windows.
+
+وظيفتهم تحويل اسم الجهاز إلى IP Address.
+
+يعني شبه DNS، لكن بيستخدموا لما الـ DNS يفشل.
+
+---
+
+## LLMNR
+
+LLMNR اختصار:
+
+Link Local Multicast Name Resolution
+
+معناها:
+
+- Link Local → داخل نفس الشبكة فقط.
+- Multicast → الرسالة بتتبعت لكل الأجهزة الموجودة على الشبكة.
+- Name Resolution → تحويل اسم الجهاز إلى IP.
+
+بيشتغل على:
+
+UDP Port 5355
+
+---
+
+## NBT-NS
+
+NBT-NS اختصار:
+
+NetBIOS Name Service
+
+وده بروتوكول أقدم من LLMNR.
+
+لو الـ DNS فشل، وبعده LLMNR فشل، الجهاز بيستخدم NBT-NS.
+
+بيشتغل على:
+
+UDP Port 137
+
+---
+
+## ترتيب عملية الـ Name Resolution
+
+غالبًا الجهاز بيعمل الآتي:
+
+1. يسأل DNS.
+2. لو فشل يستخدم LLMNR.
+3. لو فشل يستخدم NBT-NS.
+
+---
+
+## فين المشكلة؟
+
+المشكلة إن LLMNR و NBT-NS بيسمحوا لأي جهاز على نفس الشبكة إنه يرد.
+
+مش لازم يكون:
+
+- DNS Server
+- Domain Controller
+
+أي جهاز يقدر يقول:
+
+"أنا السيرفر اللي إنت بتدور عليه."
+
+وده هو أصل الثغرة.
+
+---
+
+## إيه هو الـ Poisoning؟
+
+الـ Poisoning معناه إنك ترد على طلبات الأجهزة بمعلومات مزيفة.
+
+يعني الضحية تسأل:
+
+"حد يعرف printer01؟"
+
+إنت ترد:
+
+"أيوه أنا printer01."
+
+الضحية هتصدقك وتبدأ تتعامل معاك.
+
+وده اسمه Spoofing أو Impersonation.
+
+---
+
+## Responder
+
+Responder هي أشهر أداة بتستخدم لتنفيذ LLMNR و NBT-NS Poisoning.
+
+هي بتسمع أي Broadcast Request على الشبكة، ولما تلاقي جهاز بيدور على Host مش موجود، ترد بسرعة وتقول إنها هي الجهاز المطلوب.
+
+	وبالتالي الضحية تبدأ تبعت Authentication للـ Attacker.
+
+---
+
+## مثال عملي للهجوم
+
+الموظف كتب:
+
+\\printer01.inlanefreight.local
+
+بدل:
+
+\\print01.inlanefreight.local
+
+DNS حاول يلاقي الجهاز.
+
+ملقهوش.
+
+الجهاز بعت Broadcast لكل الشبكة وقال:
+
+"مين يعرف printer01؟"
+
+Responder رد بسرعة:
+
+"أنا printer01."
+
+الضحية صدقته.
+
+وبعتت Authentication Request.
+
+الـ Attacker استقبل:
+
+- Username
+- NetNTLM Hash
+
+---
+
+## إيه اللي بنسرقه؟
+
+إحنا مش بناخد Password مباشرة.
+
+إحنا بناخد:
+
+NetNTLMv1
+
+أو
+
+NetNTLMv2 Hash
+
+بعدها نحاول نكسره Offline.
+
+---
+
+## يعني إيه Hash؟
+
+الـ Hash عبارة عن بصمة مشفرة لكلمة المرور.
+
+مثال:
+
+Password:
+
+Mohab123
+
+يتحول إلى قيمة طويلة جدًا اسمها Hash.
+
+إنت مش بتشوف الباسورد الحقيقي.
+
+لكن ممكن تحاول تكسر الـ Hash باستخدام Wordlists.
+
+---
+
+## Offline Cracking
+
+يعني بعد ما تاخد الـ Hash، متكلمش الضحية تاني.
+
+تاخده عندك على جهازك وتحاول تكسره باستخدام أدوات زى:
+
+- Hashcat
+- John The Ripper
+
+ودي ميزة لأنها مبتعملش Traffic إضافي على الشبكة.
+
+---
+
+## SMB Relay
+
+مش لازم كل مرة تكسر الـ Hash.
+
+في بعض الحالات تقدر تستخدم الـ Hash مباشرة علشان تعمل Authentication على جهاز تاني.
+
+وده اسمه:
+
+SMB Relay Attack
+
+وده هيتشرح في Module تاني.
+
+---
+
+## TTPs
+
+TTPs اختصار:
+
+- Tactics
+- Techniques
+- Procedures
+
+يعني الطريقة اللي المهاجم بينفذ بيها الهجوم.
+
+في الجزء ده الهدف هو جمع:
+
+- NTLMv1 Hashes
+- NTLMv2 Hashes
+
+وبعدها محاولة كسرها للحصول على Password الحقيقي.
+
+---
+
+## NTLMv1 vs NTLMv2
+
+NTLMv1
+
+- قديم.
+- ضعيف.
+- بيتكسر بسهولة.
+
+NTLMv2
+
+- أحدث.
+- أكثر أمانًا.
+- أصعب وأبطأ في الكسر.
+
+---
+
+## الأدوات المستخدمة
+
+### Responder
+
+أشهر أداة لعمل:
+
+- LLMNR Poisoning
+- NBT-NS Poisoning
+- MDNS Poisoning
+
+---
+
+### Inveigh
+
+أداة MITM شبيهة بـ Responder.
+
+مكتوبة بـ:
+
+- C#
+- PowerShell
+
+وتستخدم غالبًا على Windows.
+
+---
+
+### Metasploit
+
+فيه Modules جاهزة تساعد في Spoofing و Poisoning.
+
+---
+
+## البروتوكولات اللي يقدر Responder يتعامل معاها
+
+- LLMNR
+- DNS
+- MDNS
+- NBNS
+- DHCP
+- ICMP
+- HTTP
+- HTTPS
+- SMB
+- LDAP
+- WebDAV
+- Proxy Authentication
+
+وكمان يدعم:
+
+- MSSQL
+- DCE-RPC
+- FTP
+- POP3
+- IMAP
+- SMTP
+
+وده بيخليه أداة قوية جدًا في الـ Internal Pentest.
+
+---
+
+## Responder Analysis Mode
+
+في مرحلة الـ Enumeration كنا استخدمنا:
+
+```bash
+sudo responder -I ens224 -A
+```
+
+الـ `-A` معناها Analyze Mode.
+
+يعني:
+
+- يسمع فقط.
+- يعرض Requests.
+- لا يرد عليها.
+- لا يعمل Poisoning.
+
+كان مجرد مراقب للشبكة.
+
+---
+
+## دلوقتي هنبدأ Poisoning
+
+هنشيل:
+
+```bash
+-A
+```
+
+ونشغل Responder عادي.
+
+وقتها هيبدأ يرد على الطلبات بنفسه ويخدع الأجهزة.
+
+---
+
+## أهم Flags في Responder
+
+### -I
+
+تحديد الـ Network Interface.
+
+مثال:
+
+```bash
+-I ens224
+```
+
+---
+
+### -A
+
+Analyze Mode.
+
+يسمع فقط بدون أي رد.
+
+---
+
+### -w
+
+يشغل WPAD Rogue Proxy Server.
+
+وده يساعد في الحصول على Authentication من المتصفحات.
+
+---
+
+### -f
+
+يحاول يعمل Fingerprint للجهاز اللي بعت الطلب.
+
+يعرف نوع الـ Operating System وإصداره.
+
+---
+
+### -v
+
+Verbose Mode.
+
+يعرض تفاصيل أكتر أثناء التشغيل.
+
+---
+
+### -F
+
+يجبر الضحية على Authentication.
+
+قد يظهر Login Prompt.
+
+---
+
+### -P
+
+يجبر الـ Proxy Authentication.
+
+ويستخدم غالبًا مع WPAD.
+
+---
+
+## WPAD
+
+WPAD اختصار:
+
+Web Proxy Auto Discovery
+
+بعض أجهزة Windows والمتصفحات بتحاول تدور تلقائيًا على Proxy داخل الشبكة.
+
+Responder يقدر ينتحل شخصية الـ Proxy.
+
+ولو المستخدم استخدمه، هيبعت Authentication للـ Attacker.
+
+وده بيكون مفيد جدًا داخل الشركات الكبيرة.
+
+---
+
+## لو Responder نجح
+
+هيطبع الـ Hash مباشرة على الشاشة.
+
+وكمان هيحفظه داخل:
+
+```text
+/usr/share/responder/logs
+```
+
+كل Host هيكون ليه Log مستقل.
+
+مثال:
+
+```text
+SMB-NTLMv2-SSP-172.16.5.25.txt
+```
+
+وده معناه:
+
+- البروتوكول: SMB
+- نوع الـ Hash: NTLMv2
+- IP الضحية: 172.16.5.25
+
+---
+
+## تشغيل Responder
+
+أبسط تشغيل للأداة:
+
+```bash
+sudo responder -I ens224
+```
+
+الأفضل تسيبه شغال في tmux أو Screen أثناء ما تكمل Enumeration.
+
+كل ما جهاز يغلط في Name Resolution هيجيلك Hash جديد.
+
+---
+
+## البورتات المطلوبة
+
+Responder محتاج يقدر يفتح عدة Ports، أهمها:
+
+- UDP 137
+- UDP 138
+- UDP 53
+- UDP 5355
+- UDP 5353
+- TCP 80
+- TCP 135
+- TCP 139
+- TCP 445
+- TCP 389
+- TCP 1433
+- TCP 21
+- TCP 25
+- TCP 110
+- TCP 587
+- TCP 3128
+
+ولو في Service مش محتاجها، تقدر تقفلها من:
+
+Responder.conf
+
+---
+
+## كسر الـ Hash
+
+لو حصلنا على NetNTLMv2 Hash، نستخدم Hashcat.
+
+```bash
+hashcat -m 5600 hash.txt /usr/share/wordlists/rockyou.txt
+```
+
+### شرح الأمر
+
+- `-m 5600` → Hash Mode الخاص بـ NetNTLMv2.
+- `hash.txt` → الملف اللي فيه الـ Hash.
+- `rockyou.txt` → أشهر Wordlist لتجربة كلمات المرور.
+
+---
+
+## مثال من الملف
+
+الـ Hash الخاص بالمستخدم:
+
+FOREND
+
+اتكسر.
+
+وكلمة المرور كانت:
+
+```text
+Klmcargo2
+```
+
+وده معناه إن كلمة المرور كانت ضعيفة، وقدر Hashcat يجيبها.
+
+---
+
+## بعد كده؟
+
+بمجرد ما يبقى معانا:
+
+- Username
+- Password
+
+يبقى عندنا Foothold داخل الدومين.
+
+ومن هنا نبدأ مرحلة الـ Credentialed Enumeration، ونجمع معلومات أكتر عن الـ Active Directory، أو نتحرك جانبيًا (Lateral Movement)، أو نرفع الصلاحيات لو الحساب يسمح بكده.
+
+
+# Layer 7
+## LLMNR / NBT-NS Poisoning from Windows
+
+في الجزء اللي فات استخدمنا أداة **Responder** على Linux علشان نعمل LLMNR و NBT-NS Poisoning ونلتقط الـ Hashes.
+
+لكن لو جهاز الـ Attacker كان Windows، أو العميل مدينا Windows Machine نشتغل منها، أو قدرنا نوصل لجهاز Windows داخل الشبكة كـ Local Administrator، هنستخدم أداة اسمها **Inveigh** لأنها بتؤدي نفس وظيفة Responder تقريبًا. :contentReference[oaicite:0]{index=0}
+
+---
+
+## Inveigh
+
+**Inveigh** هي أداة مكتوبة بـ:
+
+- PowerShell
+- C#
+
+وظيفتها تنفيذ هجمات:
+
+- LLMNR Poisoning
+- NBT-NS Poisoning
+- DNS Spoofing
+
+وكمان تقدر تلتقط الـ Authentication Requests وتحفظ الـ NTLM Hashes.
+
+الأداة تقدر تتعامل مع بروتوكولات كتير منها:
+
+- LLMNR
+- DNS
+- mDNS
+- NBNS
+- DHCPv6
+- ICMPv6
+- HTTP
+- HTTPS
+- SMB
+- LDAP
+- WebDAV
+- Proxy Authentication
+
+وفي لابات HTB بتكون موجودة داخل:
+
+```text
+C:\Tools
+```
+
+---
+
+## استخدام نسخة PowerShell
+
+أول حاجة بنعمل Import للـ Module:
+
+```powershell
+Import-Module .\Inveigh.ps1
+```
+
+بعدها نعرض كل الـ Parameters اللي الأداة بتدعمها:
+
+```powershell
+(Get-Command Invoke-Inveigh).Parameters
+```
+
+هيظهر ليستة كبيرة جدًا فيها كل الـ Options اللي نقدر نستخدمها أثناء تشغيل Inveigh.
+
+---
+
+## تشغيل Inveigh
+
+لتشغيل الأداة مع تفعيل:
+
+- LLMNR Spoofing
+- NBNS Spoofing
+- Console Output
+- File Output
+
+نستخدم:
+
+```powershell
+Invoke-Inveigh -LLMNR Y -NBNS Y -ConsoleOutput Y -FileOutput Y
+```
+
+### شرح الـ Parameters
+
+### `-LLMNR Y`
+
+يفعل LLMNR Spoofing.
+
+يعني الأداة ترد على طلبات LLMNR.
+
+---
+
+### `-NBNS Y`
+
+يفعل NetBIOS Name Service Spoofing.
+
+---
+
+### `-ConsoleOutput Y`
+
+يعرض كل الأحداث مباشرة على الشاشة.
+
+---
+
+### `-FileOutput Y`
+
+يحفظ النتائج داخل ملفات Log.
+
+---
+
+## أول ما الأداة تشتغل
+
+هتظهر معلومات كتير، أهمها:
+
+```text
+Primary IP Address = 172.16.5.25
+```
+
+وده عنوان الـ IP بتاع جهاز الـ Attacker.
+
+---
+
+بعدها:
+
+```text
+Spoofer IP Address = 172.16.5.25
+```
+
+وده الـ IP اللي هيستخدمه أثناء الرد على الضحايا.
+
+---
+
+بعدها هيعرض البروتوكولات المفعلة والمعطلة.
+
+مثلاً:
+
+```text
+LLMNR Spoofer = Enabled
+```
+
+يعني هيعمل Spoofing على LLMNR.
+
+---
+
+```text
+NBNS Spoofer = Enabled
+```
+
+يعني هيعمل Spoofing على NBNS.
+
+---
+
+```text
+DNS Spoofer = Enabled
+```
+
+هيقدر يرد على بعض طلبات DNS.
+
+---
+
+```text
+SMB Capture = Enabled
+```
+
+هيجمع Authentication اللي تيجي عن طريق SMB.
+
+---
+
+```text
+HTTP Capture = Enabled
+```
+
+هيجمع Authentication الخاصة بـ HTTP.
+
+---
+
+```text
+WPAD Response = Enabled
+```
+
+هيستجيب لطلبات WPAD.
+
+---
+
+## رسالة الخطأ
+
+هيظهر:
+
+```text
+Error starting HTTP listener
+```
+
+وده معناه إن Port 80 مستخدم بالفعل أو Windows مانع الأداة تفتحه.
+
+وده طبيعي ومش بيمنع باقي الهجوم من إنه يشتغل.
+
+---
+
+## بعد ثواني
+
+هنبدأ نشوف Requests جاية من أجهزة الضحايا.
+
+مثلاً:
+
+```text
+LLMNR request for academy-ea-web0
+```
+
+وده معناه إن جهاز داخل الشبكة بيدور على Host اسمه:
+
+```text
+academy-ea-web0
+```
+
+---
+
+بعدها مباشرة:
+
+```text
+response sent
+```
+
+يعني Inveigh رد على الضحية وقاله:
+
+"أنا الـ Host اللي بتدور عليه."
+
+وبكده يبدأ الـ Authentication.
+
+---
+
+## بعدها
+
+هنلاقي:
+
+```text
+SMB negotiation request detected
+```
+
+يعني الضحية بدأت تعمل اتصال SMB.
+
+---
+
+بعدها:
+
+```text
+NTLM challenge sent
+```
+
+وده بداية عملية الـ NTLM Authentication.
+
+ومن هنا الأداة تبدأ تجمع الـ Hash.
+
+---
+
+## نسخة C#
+
+الكاتب بيقول إن نسخة PowerShell مبقاش بيتم تطويرها.
+
+أما النسخة اللي بيتضافلها تحديثات باستمرار فهي:
+
+**InveighZero**
+
+المكتوبة بـ C#.
+
+ودي هي النسخة الموصى باستخدامها.
+
+---
+
+## تشغيل نسخة C#
+
+بعد ما تكون Compile أو موجودة جاهزة:
+
+```powershell
+.\Inveigh.exe
+```
+
+---
+
+## أول تشغيل
+
+الأداة هتعرض كل الخدمات اللي شغالة افتراضيًا.
+
+أي خدمة قدامها:
+
+```text
+[+]
+```
+
+يبقى مفعلة.
+
+وأي خدمة قدامها:
+
+```text
+[ ]
+```
+
+تبقى غير مفعلة.
+
+---
+
+مثال:
+
+```text
+[+] LLMNR Packet Sniffer
+```
+
+يعني بيسمع Requests الخاصة بـ LLMNR.
+
+---
+
+```text
+[+] LDAP Listener
+```
+
+يعني عامل Listener على LDAP.
+
+---
+
+```text
+[+] SMB Packet Sniffer
+```
+
+بيتابع اتصالات SMB.
+
+---
+
+```text
+[ ] NBNS
+```
+
+يعني NBNS مش شغال بالإعدادات الافتراضية.
+
+---
+
+```text
+[ ] HTTPS
+```
+
+يعني HTTPS Listener مش شغال.
+
+---
+
+## أثناء التشغيل
+
+هنشوف رسائل زي:
+
+```text
+LLMNR(A) request
+```
+
+يعني جهاز بيسأل عن IPv4 Address.
+
+---
+
+ولو ظهر:
+
+```text
+LLMNR(AAAA)
+```
+
+فده معناه إنه بيسأل عن IPv6 Address.
+
+وفي المثال الأداة تجاهلت النوع ده لأنه غير مفعل.
+
+---
+
+## Interactive Console
+
+أثناء تشغيل Inveigh هيظهر:
+
+```text
+Press ESC to enter/exit interactive console
+```
+
+لو ضغطنا:
+
+ESC
+
+هندخل Console داخلي خاص بالأداة.
+
+منه نقدر نشوف:
+
+- الـ Hashes
+- الـ Logs
+- الـ Credentials
+- نوقف الأداة
+- نعدل بعض الإعدادات
+
+بدون ما نقفل البرنامج.
+
+---
+
+## HELP
+
+لو كتبنا:
+
+```text
+HELP
+```
+
+هيظهر كل أوامر الـ Console.
+
+---
+
+## أهم أوامر الـ Console
+
+### GET NTLMV2
+
+يعرض كل الـ NTLMv2 Hashes اللي اتجمعت.
+
+---
+
+### GET NTLMV2UNIQUE
+
+يعرض Hash واحد فقط لكل User.
+
+وده مفيد علشان متشوفش نفس الـ User مكرر عشرات المرات.
+
+---
+
+### GET NTLMV2USERNAMES
+
+يعرض:
+
+- Username
+- Host
+- Source IP
+
+بدون عرض الـ Hash بالكامل.
+
+وده مفيد لو عايز تعرف المستخدمين الموجودين في الشبكة.
+
+---
+
+### GET CLEARTEXT
+
+يعرض أي Credentials وصلت بصيغة واضحة (Plaintext) لو تم التقاطها.
+
+---
+
+### GET LOG
+
+يعرض الـ Logs الخاصة بالأداة.
+
+---
+
+### STOP
+
+يقفل Inveigh.
+
+---
+
+## مثال على Hash
+
+الأداة عرضت:
+
+```text
+backupagent::INLANEFREIGHT:...
+```
+
+وده NetNTLMv2 Hash خاص بالمستخدم:
+
+```text
+backupagent
+```
+
+وبرضه ظهر Hash تاني للمستخدم:
+
+```text
+forend
+```
+
+يعني قدرنا نجمع أكتر من User.
+
+---
+
+## عرض أسماء المستخدمين فقط
+
+لما استخدمنا:
+
+```text
+GET NTLMV2USERNAMES
+```
+
+ظهر:
+
+- backupagent
+- forend
+- clusteragent
+- wley
+- svc_qualys
+
+وده بيساعدنا نحدد أي الحسابات تستحق نحاول نكسر الـ Hash الخاص بيها باستخدام Hashcat.
+
+---
+
+## Remediation
+
+علشان نمنع الهجوم ده، الكتاب اقترح أكتر من حل.
+
+---
+
+## تعطيل LLMNR
+
+من خلال:
+
+```text
+Group Policy
+
+Computer Configuration
+→ Administrative Templates
+→ Network
+→ DNS Client
+→ Turn OFF Multicast Name Resolution
+```
+
+وبعدين نفعل الخيار.
+
+وبكده Windows مش هيستخدم LLMNR.
+
+---
+
+## تعطيل NBT-NS
+
+مش بيتقفل من Group Policy مباشرة.
+
+لازم يتقفل من كل جهاز.
+
+الخطوات:
+
+1. Network and Sharing Center.
+2. Change Adapter Settings.
+3. Properties.
+4. Internet Protocol Version 4.
+5. Advanced.
+6. WINS.
+7. Disable NetBIOS over TCP/IP.
+
+---
+
+## تعطيل NBT-NS باستخدام PowerShell
+
+بدل ما تعمل ده يدويًا على كل جهاز، ممكن تستخدم Script:
+
+```powershell
+$regkey = "HKLM:SYSTEM\CurrentControlSet\Services\NetBT\Parameters\Interfaces"
+
+Get-ChildItem $regkey | ForEach {
+    Set-ItemProperty -Path "$regkey\$($_.PSChildName)" -Name NetbiosOptions -Value 2
+}
+```
+
+السكريبت بيغير قيمة Registry الخاصة بكل Network Interface ويعطل NetBIOS.
+
+---
+
+## نشر الـ Script على كل أجهزة الدومين
+
+نقدر نحط الـ Script داخل:
+
+```text
+SYSVOL
+```
+
+ونربطه بـ Group Policy Startup Script.
+
+ولما الأجهزة تعمل Restart، السكريبت يشتغل تلقائيًا ويعطل NBT-NS على كل الأجهزة.
+
+---
+
+## حلول إضافية
+
+الكتاب ذكر كمان:
+
+- فلترة Traffic الخاصة بـ LLMNR و NetBIOS.
+- تفعيل SMB Signing لمنع NTLM Relay.
+- استخدام IDS/IPS لمراقبة الشبكة.
+- تقسيم الشبكة (Network Segmentation).
+
+---
+
+## Detection
+
+لو مش قادرين نعطل LLMNR أو NBT-NS، لازم نراقب وجود الهجوم.
+
+من طرق الاكتشاف:
+
+- مراقبة Traffic على:
+
+```text
+UDP 5355
+```
+
+و
+
+```text
+UDP 137
+```
+
+---
+
+- مراقبة Event IDs:
+
+```text
+4697
+7045
+```
+
+---
+
+- مراقبة قيمة Registry:
+
+```text
+HKLM\Software\Policies\Microsoft\Windows NT\DNSClient
+```
+
+ولو:
+
+```text
+EnableMulticast = 0
+```
+
+يبقى LLMNR متعطل.
+
+---
+
+## بعد كده؟
+
+بعد ما نجمع الـ Hashes، مش بنجري نكسرهم كلهم.
+
+الأفضل الأول نستخدم أدوات زي:
+
+- BloodHound
+
+علشان نعرف أي المستخدمين عندهم صلاحيات مهمة.
+
+بعدها نحاول نكسر الـ Hashes الخاصة بالحسابات المهمة فقط باستخدام Hashcat.
+
+ولو قدرنا نجيب Password لحساب مميز، نبدأ نوسع سيطرتنا داخل الـ Active Directory.
+
+ولو مقدرناش نكسر أي Hash، يبقى ننتقل للمرحلة اللي بعدها وهي:
+
+**Password Spraying**.
