@@ -11035,3 +11035,6953 @@ Network كاملة.
 - ليه إعادة استخدام كلمات مرور الـ Local Administrator مشكلة كبيرة، وإزاي LAPS بيعالجها.
 
 # Layer 12
+## Internal Password Spraying - from Windows
+
+في الجزء اللي فات اتعلمنا إزاي نعمل Password Spraying من Linux.
+
+دلوقتي هنشوف نفس الفكرة.
+
+لكن من جهاز Windows موجود داخل الدومين.
+
+---
+
+## ليه ننفذ الهجوم من Windows؟
+
+مش لازم كل مرة يكون عندك Kali أو Linux.
+
+ممكن تكون:
+
+- واخد Initial Access على جهاز Windows.
+- عندك RDP على جهاز.
+- عندك Shell.
+- أو العميل بنفسه مديك Windows VM داخل الشبكة.
+
+في الحالة دي.
+
+هنستخدم أدوات Windows.
+
+---
+
+## الأداة المستخدمة
+
+اسمها:
+
+```
+DomainPasswordSpray.ps1
+```
+
+---
+
+## ليه الأداة دي مميزة؟
+
+لأنها بتعمل حاجات كتير لوحدها.
+
+بدل ما تعملها بإيدك.
+
+---
+
+## الأداة بتعمل إيه؟
+
+لو أنت Logged In على الدومين.
+
+فهتقوم تلقائيًا بـ:
+
+- تجيب كل Users من Active Directory.
+- تعرف Password Policy.
+- تعرف Lockout Threshold.
+- تستبعد الحسابات القريبة من الـ Lockout.
+- تنفذ Password Spray.
+- تحفظ النتائج في ملف.
+
+
+![[Pasted image 20260803180333.png]]
+
+---
+
+## لو مش Logged In؟
+
+ممكن تديها:
+
+```
+-UserList
+```
+
+وتستخدم ملف Users بنفسك.
+
+---
+
+## سيناريوهات استخدام الأداة
+
+الدرس ذكر أكتر من مثال.
+
+---
+
+### الحالة الأولى
+
+أنت داخل على جهاز Domain Joined.
+
+---
+
+### الحالة الثانية
+
+العميل مديك Windows VM.
+
+---
+
+### الحالة الثالثة
+
+أنت موجود داخل الشركة.
+
+On-site.
+
+---
+
+### الحالة الرابعة
+
+خدت Initial Access.
+
+وعايز تحصل على User أقوى.
+
+مثلاً:
+
+من User عادي.
+
+إلى Domain Admin.
+
+---
+
+## تشغيل الأداة
+
+أول خطوة.
+
+```powershell
+Import-Module .\DomainPasswordSpray.ps1
+```
+
+---
+
+## يعني إيه Import-Module؟
+
+PowerShell فيه حاجة اسمها Modules.
+
+زي Libraries.
+
+---
+
+الأمر ده.
+
+بيحمل السكريبت.
+
+علشان تقدر تستخدم أوامره.
+
+---
+
+بعدها.
+
+```powershell
+Invoke-DomainPasswordSpray \
+-Password Welcome1 \
+-OutFile spray_success \
+-ErrorAction SilentlyContinue
+```
+
+---
+
+## نشرح الأمر
+
+---
+
+### Invoke-DomainPasswordSpray
+
+الأمر الأساسي.
+
+اللي بينفذ Password Spraying.
+
+---
+
+### -Password
+
+```powershell
+Welcome1
+```
+
+الباسورد اللي هتتجرب.
+
+---
+
+### -OutFile
+
+```powershell
+spray_success
+```
+
+احفظ النتائج.
+
+في ملف.
+
+---
+
+### -ErrorAction SilentlyContinue
+
+دي خاصة بـ PowerShell.
+
+---
+
+يعني:
+
+لو فيه Errors.
+
+متظهرهاش.
+
+وكمل تنفيذ.
+
+---
+
+## بداية التنفيذ
+
+```text
+Current domain is compatible with Fine-Grained Password Policy
+```
+
+---
+
+## يعني إيه Fine-Grained Password Policy؟
+
+في Active Directory.
+
+ممكن يبقى فيه:
+
+Password Policy واحدة.
+
+لكل الناس.
+
+---
+
+أو.
+
+يبقى فيه Policies مختلفة.
+
+حسب نوع المستخدم.
+
+---
+
+مثلاً.
+
+Admins.
+
+ليهم Password Policy.
+
+---
+
+Employees.
+
+ليهم Password Policy تانية.
+
+---
+
+وده اسمه:
+
+Fine-Grained Password Policy.
+
+---
+
+## بعد كده
+
+```text
+Now creating a list of users to spray...
+```
+
+---
+
+يعني.
+
+الأداة بدأت تجمع المستخدمين.
+
+من Active Directory.
+
+---
+
+## بعدها
+
+```text
+Smallest lockout threshold discovered
+
+5
+```
+
+---
+
+يعني.
+
+أقل Lockout Threshold.
+
+في الدومين.
+
+هو
+
+5
+
+---
+
+## ليه اختارت أصغر واحد؟
+
+علشان تبقى Safe.
+
+---
+
+لو فيه User.
+
+Threshold بتاعه
+
+5
+
+وغيره
+
+10
+
+---
+
+الأداة هتمشي على
+
+5
+
+علشان متقفلش أي حساب.
+
+---
+
+## بعد كده
+
+```text
+Removing disabled users
+```
+
+---
+
+يعني.
+
+الحسابات المقفولة.
+
+اتشالت.
+
+---
+
+لأن مفيش فايدة.
+
+تجرب عليها.
+
+---
+
+## بعدها
+
+```text
+2923 Users
+```
+
+---
+
+يعني.
+
+لقيت
+
+2923
+
+User.
+
+---
+
+## بعدها
+
+```text
+Removing users within 1 attempt of locking out
+```
+
+---
+
+دي من أذكى مميزات الأداة.
+
+---
+
+مثلاً.
+
+Threshold = 5.
+
+---
+
+وفي User.
+
+عامل
+
+```
+badpwdcount = 4
+```
+
+---
+
+يبقى.
+
+لو جربت Password واحدة.
+
+الحساب هيتقفل.
+
+---
+
+الأداة.
+
+بتشيله تلقائيًا.
+
+---
+
+## بعد كده
+
+```text
+Observation Window
+```
+
+---
+
+## يعني إيه Observation Window؟
+
+هي الفترة.
+
+اللي بعدها.
+
+عداد الـ badpwdcount.
+
+يرجع صفر.
+
+---
+
+مثلاً.
+
+```
+30 Minutes
+```
+
+---
+
+يعني.
+
+لو المستخدم غلط مرتين.
+
+واستنى.
+
+30 دقيقة.
+
+---
+
+العداد يرجع.
+
+0.
+
+---
+
+## بعد كده
+
+```text
+Setting wait between sprays
+```
+
+---
+
+يعني.
+
+الأداة.
+
+هتستنى.
+
+الفترة المناسبة.
+
+بين كل Password.
+
+علشان تحافظ على الحسابات.
+
+---
+
+## Confirmation
+
+بعدها.
+
+هتسألك.
+
+```text
+Are you sure?
+```
+
+---
+
+ليه؟
+
+علشان.
+
+متنفذش الهجوم بالغلط.
+
+---
+
+لو كتبت.
+
+```
+Y
+```
+
+---
+
+هيبدأ.
+
+---
+
+## التنفيذ
+
+```text
+Trying Password
+
+Welcome1
+```
+
+---
+
+يعني.
+
+هيجرب.
+
+Welcome1.
+
+على كل المستخدمين.
+
+---
+
+## النجاح
+
+```text
+SUCCESS
+
+User
+
+sgage
+
+Password
+
+Welcome1
+```
+
+---
+
+وده معناه.
+
+لقى User.
+
+بيستخدم الباسورد دي.
+
+---
+
+بعدها.
+
+```text
+Writing Successes
+```
+
+---
+
+يعني.
+
+بيحفظ كل النتائج.
+
+في الملف.
+
+اللي أنت حددته.
+
+---
+
+## Kerbrute على Windows
+
+الكاتب قال.
+
+ممكن تستخدم.
+
+Kerbrute.
+
+على Windows.
+
+برضو.
+
+---
+
+نفس الأوامر.
+
+اللي استخدمناها على Linux.
+
+---
+
+## Mitigations
+
+بعد ما شرح الهجوم.
+
+بدأ يشرح.
+
+إزاي الشركات تمنعه.
+
+---
+
+## Multi-Factor Authentication
+
+أول حماية.
+
+هي.
+
+MFA.
+
+---
+
+## يعني إيه MFA؟
+
+يعني.
+
+مش Password بس.
+
+---
+
+لازم كمان.
+
+عامل تاني.
+
+زي:
+
+- Google Authenticator.
+- رسالة SMS.
+- Push Notification.
+- RSA Token.
+
+---
+
+## هل MFA يمنع الهجوم؟
+
+غالبًا.
+
+أيوه.
+
+---
+
+لكن.
+
+في نقطة.
+
+الكاتب ذكرها.
+
+---
+
+ممكن.
+
+الـ Username.
+
+والـ Password.
+
+يبقوا صح.
+
+---
+
+لكن.
+
+اللي يمنع الدخول.
+
+هو.
+
+الـ MFA.
+
+---
+
+وده معناه.
+
+إن الـ Credentials نفسها صحيحة.
+
+وممكن المهاجم يجربها على خدمة تانية لا تستخدم MFA.
+
+---
+
+## Restricting Access
+
+يعني.
+
+تدي كل User.
+
+صلاحياته فقط.
+
+---
+
+مثلاً.
+
+موظف HR.
+
+ميقدرش يدخل.
+
+على تطبيق الـ IT.
+
+---
+
+وده اسمه.
+
+Least Privilege.
+
+---
+
+## Least Privilege
+
+يعني.
+
+كل مستخدم.
+
+ياخد أقل صلاحيات.
+
+يحتاجها.
+
+بس.
+
+---
+
+## Reducing Impact
+
+يعني.
+
+حتى لو المهاجم دخل.
+
+يبقى الضرر قليل.
+
+---
+
+إزاي؟
+
+---
+
+### Admin Account منفصل
+
+يبقى.
+
+الموظف.
+
+عنده.
+
+User.
+
+---
+
+وحساب Admin.
+  
+منفصل.
+
+---
+
+مش نفس الحساب.
+
+---
+
+### Application Permissions
+
+كل برنامج.
+
+له Permissions.
+
+منفصلة.
+
+---
+
+### Network Segmentation
+
+قسم الشبكة.
+
+لأجزاء.
+
+---
+
+بحيث.
+
+لو المهاجم دخل.
+
+جزء.
+
+ميعرفش يوصل.
+
+لكل الشركة.
+
+---
+
+## Password Hygiene
+
+يعني.
+
+ثقافة اختيار Passwords.
+
+---
+
+لازم المستخدمين.
+
+يستخدموا.
+
+Passwords قوية.
+
+---
+
+والشركة.
+
+تمنع.
+
+Passwords المشهورة.
+
+زي.
+
+```
+Welcome1
+
+Summer2025
+
+Company123
+```
+
+---
+
+وكمان.
+
+تمنع.
+
+اسم الشركة.
+
+داخل Password.
+
+---
+
+## نقطة مهمة جدًا
+
+لو Lockout Policy.
+
+شديدة جدًا.
+
+---
+
+مثلاً.
+
+بعد محاولة واحدة.
+
+الحساب يتقفل.
+
+---
+
+ده ممكن.
+
+يسبب.
+
+Denial of Service.
+
+---
+
+لأن أي حد.
+
+يقدر يقفل.
+
+كل الحسابات.
+
+بسهولة.
+
+---
+
+## Detection
+
+إزاي الشركة تعرف.
+
+إن فيه Password Spraying؟
+
+---
+
+### أول علامة
+
+حسابات كتير.
+
+اتقفلت.
+
+في وقت قصير.
+
+---
+
+### ثاني علامة
+
+محاولات Login.
+
+كتير.
+
+على Users مختلفين.
+
+---
+
+### ثالث علامة
+
+طلبات كتير.
+
+لنفس الموقع.
+
+في وقت قصير.
+
+---
+
+## Event ID 4625
+
+ده أشهر Event.
+
+---
+
+معناه.
+
+```
+An account failed to log on
+```
+
+---
+
+يعني.
+
+Login Failed.
+
+---
+
+لو ظهر.
+
+مئات المرات.
+
+في وقت قصير.
+
+---
+
+غالبًا.
+
+فيه Password Spraying.
+
+---
+
+## Event ID 4771
+
+ده خاص.
+
+بـ Kerberos.
+
+---
+
+معناه.
+
+```
+Kerberos Pre-Authentication Failed
+```
+
+---
+
+وده مهم.
+
+لو المهاجم.
+
+بيستخدم LDAP أو Kerberos بدل SMB.
+
+---
+
+لكن.
+
+علشان يظهر.
+
+لازم.
+
+Kerberos Logging.
+
+يبقى Enabled.
+
+---
+
+## External Password Spraying
+
+الدرس قال.
+
+مش داخل المنهج.
+
+لكن ذكره باختصار.
+
+---
+
+## يعني إيه External؟
+
+يعني.
+
+المهاجم.
+
+خارج الشركة.
+
+---
+
+وبيهاجم.
+
+الخدمات.
+
+اللي على الإنترنت.
+
+---
+
+## أشهر الأهداف
+
+### Microsoft 365
+
+حسابات Microsoft السحابية.
+
+---
+
+### Outlook Web Access
+
+تسجيل الدخول للبريد.
+
+---
+
+### Exchange Web Access
+
+واجهة Exchange.
+
+---
+
+### Skype for Business
+
+---
+
+### Lync Server
+
+---
+
+### RDS Portals
+
+بوابات Remote Desktop.
+
+---
+
+### Citrix Portals
+
+---
+
+### VMware Horizon
+
+---
+
+### VPN Portals
+
+زي:
+
+- Fortinet
+- SonicWall
+- Citrix
+- OpenVPN
+
+---
+
+### Custom Web Applications
+
+أي موقع.
+
+بيستخدم.
+
+Active Directory Authentication.
+
+---
+
+## Moving Deeper
+
+بعد ما حصلنا.
+
+على Credentials.
+
+---
+
+المرحلة اللي بعدها.
+
+مش Password Spraying.
+
+---
+
+لكن.
+
+Credentialed Enumeration.
+
+---
+
+يعني.
+
+هنستخدم الـ Credentials.
+
+علشان نستكشف.
+
+الدومين.
+
+بشكل أعمق.
+
+---
+
+ومن هناك.
+
+نبدأ:
+
+- Lateral Movement (الانتقال لأجهزة أخرى بنفس مستوى الصلاحيات).
+- Vertical Movement أو Privilege Escalation (الحصول على صلاحيات أعلى داخل الدومين).
+
+---
+
+## ملخص الفصل بالكامل
+
+بعد إنهاء فصل Password Spraying أصبحت تعرف:
+
+- ليه لازم تجمع User List قبل الهجوم.
+- أهمية معرفة Password Policy قبل أي محاولة.
+- طرق جمع المستخدمين باستخدام SMB وLDAP وKerbrute وCrackMapExec.
+- تنفيذ Password Spraying من Linux باستخدام `rpcclient` و`Kerbrute` و`CrackMapExec`.
+- تنفيذ Password Spraying من Windows باستخدام `DomainPasswordSpray.ps1`.
+- كيفية التحقق من الـ Credentials بعد نجاح الهجوم.
+- خطورة إعادة استخدام كلمة مرور الـ Local Administrator وكيفية استغلالها.
+- وسائل الحماية مثل MFA وLeast Privilege وLAPS وNetwork Segmentation.
+- طرق اكتشاف الهجوم باستخدام Windows Event IDs مثل **4625** و**4771**.
+- الفرق بين Internal Password Spraying وExternal Password Spraying.
+- أن الخطوة التالية بعد الحصول على حسابات صحيحة هي **Credentialed Enumeration** لاستكشاف بيئة الـ Active Directory بشكل أعمق.
+
+
+# Layer 13
+## Enumerating Security Controls
+
+بعد ما نجحنا ناخد **Foothold** داخل الشبكة (يعني بقينا عندنا وصول مبدئي لجهاز داخل الدومين)، مش بنبدأ نهجم على طول.
+
+أول خطوة ذكية هي إننا نعرف:
+
+**إيه وسائل الحماية الموجودة في الشركة؟**
+
+لأن الأدوات اللي هتستخدمها بعد كده ممكن تشتغل على شركة، وتتفشل أو تتكشف في شركة تانية بسبب وجود وسائل حماية مختلفة.
+
+---
+
+## يعني إيه Security Controls؟
+
+Security Controls هي وسائل الحماية اللي الشركة حطاها علشان تمنع أو تكتشف الهجمات.
+
+زي مثلاً:
+
+- Windows Defender
+- AppLocker
+- LAPS
+- Antivirus
+- EDR
+- PowerShell Restrictions
+
+---
+
+## ليه نعمل Enumeration للـ Security Controls؟
+
+علشان نعرف:
+
+- هل PowerView هيشتغل؟
+- هل PowerShell متقفلة؟
+- هل Windows Defender شغال؟
+- هل LAPS مفعلة؟
+- هل فيه Application Whitelisting؟
+
+كل ده بيساعدك تختار الأداة المناسبة.
+
+---
+
+## Living Off The Land
+
+الكاتب ذكر مصطلح مهم جدًا.
+
+```
+Living Off The Land
+```
+
+---
+
+## يعني إيه؟
+
+يعني تستخدم الأدوات الموجودة أصلًا داخل Windows.
+
+بدل ما تنزل أدوات خارجية.
+
+---
+
+مثلاً تستخدم:
+
+- cmd
+- powershell
+- net
+- sc
+- wmic
+- certutil
+
+بدل ما تنزل ملفات جديدة.
+
+---
+
+## ليه؟
+
+لأن الأدوات الموجودة أصلًا:
+
+- أقل لفتًا للانتباه.
+- أقل احتمال إنها تتمنع.
+- غالبًا الـ Antivirus بيسمح بيها.
+
+---
+
+## نقطة مهمة
+
+مش كل أجهزة الشركة.
+
+بيكون عليها نفس الحماية.
+
+---
+
+مثلاً:
+
+Server.
+
+ممكن يكون عليه AppLocker.
+
+---
+
+لكن.
+
+جهاز موظف.
+
+مفيهوش AppLocker.
+
+---
+
+فلازم تعمل Enumeration لكل جهاز مهم.
+
+---
+
+## Windows Defender
+
+أول وسيلة حماية.
+
+هي.
+
+Windows Defender.
+
+---
+
+## يعني إيه Windows Defender؟
+
+هو Antivirus المدمج مع Windows.
+
+واسمه الجديد:
+
+```
+Microsoft Defender
+```
+
+---
+
+## بيعمل إيه؟
+
+بيفحص:
+
+- الملفات.
+- البرامج.
+- الـ Scripts.
+- PowerShell.
+- الـ Memory.
+
+ويمنع أي حاجة يعتبرها خطر.
+
+---
+
+## مثال
+
+PowerView.
+
+---
+
+PowerView أداة مشهورة جدًا.
+
+في Active Directory Enumeration.
+
+---
+
+في Windows الحديثة.
+
+Defender غالبًا هيمنعها.
+
+---
+
+## هل ينفع نتخطاه؟
+
+الكاتب قال.
+
+أيوه.
+
+---
+
+لكن.
+
+طرق الـ Bypass.
+
+مش ضمن الموديول.
+
+---
+
+## معرفة حالة Defender
+
+الأمر
+
+```powershell
+Get-MpComputerStatus
+```
+
+---
+
+## نشرح
+
+### Get
+
+يعني.
+
+هات.
+
+---
+
+### Mp
+
+اختصار.
+
+Microsoft Protection.
+
+---
+
+### ComputerStatus
+
+حالة الحماية.
+
+---
+
+## الناتج
+
+هيظهر حاجات كتير.
+
+---
+
+## AMEngineVersion
+
+```text
+AMEngineVersion
+```
+
+---
+
+إصدار محرك الـ Antivirus.
+
+---
+
+## AntivirusEnabled
+
+```text
+AntivirusEnabled : True
+```
+
+---
+
+يعني.
+
+الـ Antivirus شغال.
+
+---
+
+## AntispywareEnabled
+
+```text
+True
+```
+
+---
+
+يعني.
+
+الحماية ضد Spyware شغالة.
+
+---
+
+## AMServiceEnabled
+
+يعني.
+
+خدمة Defender نفسها شغالة.
+
+---
+
+## RealTimeProtectionEnabled
+
+أهم قيمة.
+
+---
+
+```text
+True
+```
+
+---
+
+يعني.
+
+Real-Time Protection شغالة.
+
+---
+
+## يعني إيه Real-Time Protection؟
+
+يعني.
+
+أي ملف.
+
+ينزل.
+
+أو يتفتح.
+
+أو يتنفذ.
+
+---
+
+Defender.
+
+هيفحصه فورًا.
+
+---
+
+ولو اعتبره Malware.
+
+هيمنعه.
+
+---
+
+## لو كانت False؟
+
+يبقى.
+
+الحماية اللحظية.
+
+مقفولة.
+
+---
+
+وده بيسهل.
+
+تشغيل أدوات كتير.
+
+---
+
+## AppLocker
+
+وسيلة حماية تانية.
+
+---
+
+## يعني إيه AppLocker؟
+
+هو نظام.
+
+بيحدد.
+
+أنهي برامج.
+
+ينفع تشتغل.
+
+---
+
+وأنهي برامج.
+
+مينفعش.
+
+---
+
+يعني.
+
+بدل ما يمنع Malware فقط.
+
+هو بيقول:
+
+```
+البرنامج ده مسموح.
+
+البرنامج ده ممنوع.
+```
+
+---
+
+## يعني Application Whitelisting؟
+
+يعني.
+
+بدل Blacklist.
+
+---
+
+يبقى.
+
+Whitelist.
+
+---
+
+يعني.
+
+اسمح فقط.
+
+للبرامج المعروفة.
+
+---
+
+أي برنامج جديد.
+
+هيتمنع.
+
+---
+
+## AppLocker بيقدر يمنع
+
+- EXE
+- DLL
+- Scripts
+- MSI
+- PowerShell
+- Store Apps
+
+---
+
+## الشركات غالبًا بتعمل إيه؟
+
+بتمنع:
+
+```text
+cmd.exe
+```
+
+---
+
+و
+
+```text
+powershell.exe
+```
+
+---
+
+لكن.
+
+ينسوا.
+
+إن PowerShell.
+
+ليها نسخ تانية.
+
+---
+
+زي.
+
+```text
+SysWOW64
+```
+
+---
+
+أو.
+
+```text
+PowerShell_ISE.exe
+```
+
+---
+
+فالمهاجم.
+
+يستخدم نسخة تانية.
+
+---
+
+## معرفة AppLocker Rules
+
+الأمر
+
+```powershell
+Get-AppLockerPolicy -Effective
+```
+
+---
+
+## -Effective
+
+يعني.
+
+هات الـ Rules.
+
+اللي مطبقة فعليًا.
+
+---
+
+## الناتج
+
+مثلاً.
+
+```text
+Block PowerShell
+```
+
+---
+
+وده معناه.
+
+PowerShell.
+
+ممنوعة.
+
+---
+
+لكن.
+
+لاحظ.
+
+المسار.
+
+```text
+system32
+```
+
+---
+
+يعني.
+
+هو منع.
+
+نسخة واحدة.
+
+---
+
+ممكن.
+
+نسخة تانية.
+
+تشتغل.
+
+---
+
+## Default Rules
+
+هنلاقي.
+
+Rules.
+
+اسمها.
+
+```
+Default Rule
+```
+
+---
+
+زي.
+
+```text
+Program Files
+```
+
+---
+
+يعني.
+
+أي برنامج.
+
+داخل.
+
+Program Files.
+
+مسموح.
+
+---
+
+وده معناه.
+
+لو قدرت.
+
+تشغل أداة.
+
+من Program Files.
+
+قد تشتغل.
+
+---
+
+## PowerShell Constrained Language Mode
+
+وسيلة حماية مهمة جدًا.
+
+---
+
+## يعني إيه؟
+
+PowerShell فيها.
+
+أوضاع تشغيل.
+
+---
+
+أشهرهم.
+
+```
+FullLanguage
+```
+
+---
+
+و
+
+```
+ConstrainedLanguage
+```
+
+---
+
+## Full Language
+
+يعني.
+
+PowerShell.
+
+تشتغل بكل إمكانياتها.
+
+---
+
+## Constrained Language
+
+يعني.
+
+PowerShell.
+
+مقيدة.
+
+---
+
+## إيه اللي بيتمنع؟
+
+الكاتب ذكر:
+
+- COM Objects
+- PowerShell Classes
+- XAML
+- بعض أنواع .NET Objects
+
+---
+
+وده بيمنع.
+
+كتير من أدوات الهجوم.
+
+---
+
+## معرفة Language Mode
+
+الأمر
+
+```powershell
+$ExecutionContext.SessionState.LanguageMode
+```
+
+---
+
+## لو ظهر
+
+```text
+ConstrainedLanguage
+```
+
+---
+
+يبقى.
+
+PowerShell.
+
+مقيدة.
+
+---
+
+أما.
+
+```text
+FullLanguage
+```
+
+---
+
+يبقى.
+
+كل الإمكانيات.
+
+متاحة.
+
+---
+
+## LAPS
+
+الكاتب رجع اتكلم عنه.
+
+لكن من ناحية Enumeration.
+
+---
+
+## يعني إيه LAPS؟
+
+اختصار.
+
+```
+Local Administrator Password Solution
+```
+
+---
+
+وده نظام.
+
+بيخلي.
+
+كل جهاز.
+
+له Password مختلفة.
+
+للـ Local Administrator.
+
+---
+
+وكمان.
+
+بتتغير.
+
+كل فترة.
+
+---
+
+## ليه ده مهم؟
+
+لأنه.
+
+يمنع.
+
+Password Reuse.
+
+---
+
+## LAPSToolkit
+
+فيه Toolkit.
+
+اسمها.
+
+```
+LAPSToolkit
+```
+
+---
+
+بتساعدنا.
+
+نعرف.
+
+كل المعلومات.
+
+عن LAPS.
+
+---
+
+## Find-LAPSDelegatedGroups
+
+الأمر
+
+```powershell
+Find-LAPSDelegatedGroups
+```
+
+---
+
+## بيعمل إيه؟
+
+بيجيب.
+
+المجموعات.
+
+اللي ليها حق.
+
+تقرأ.
+
+Passwords.
+
+---
+
+مثلاً.
+
+```text
+Domain Admins
+```
+
+---
+
+يعني.
+
+أي Domain Admin.
+
+يقدر.
+
+يشوف.
+
+LAPS Password.
+
+---
+
+وبرضو.
+
+```text
+LAPS Admins
+```
+
+---
+
+دي مجموعة.
+
+متخصصة.
+
+في إدارة LAPS.
+
+---
+
+## ليه ده مهم؟
+
+لو قدرت.
+
+تاخد Account.
+
+من المجموعات دي.
+
+---
+
+هتعرف.
+
+Passwords.
+
+لكل الأجهزة.
+
+---
+
+## Find-AdmPwdExtendedRights
+
+الأمر
+
+```powershell
+Find-AdmPwdExtendedRights
+```
+
+---
+
+## بيعمل إيه؟
+
+بيشوف.
+
+مين.
+
+عنده صلاحية.
+
+```
+All Extended Rights
+```
+
+---
+
+## يعني إيه All Extended Rights؟
+
+صلاحية واسعة على الـ Computer Object.
+
+ومن ضمنها.
+
+إمكانية قراءة Password الخاصة بـ LAPS.
+
+---
+
+يعني.
+
+مش لازم يبقى.
+
+Domain Admin.
+
+---
+
+ممكن.
+
+User عادي.
+
+لكن واخد.
+
+الصلاحية دي.
+
+---
+
+وده بيكون هدف مهم جدًا أثناء الـ Enumeration.
+
+---
+
+## Get-LAPSComputers
+
+الأمر
+
+```powershell
+Get-LAPSComputers
+```
+
+---
+
+## بيعمل إيه؟
+
+بيعرض.
+
+كل الأجهزة.
+
+اللي عليها.
+
+LAPS.
+
+---
+
+وكمان.
+
+يعرض:
+
+- Password.
+- Expiration Date.
+
+---
+
+## مثال
+
+```text
+ComputerName
+
+WS01
+```
+
+---
+
+اسم الجهاز.
+
+---
+
+```text
+Password
+
+TCaG-F)3No;l8C
+```
+
+---
+
+دي.
+
+Password الحالية.
+
+---
+
+```text
+Expiration
+
+09/26/2020
+```
+
+---
+
+ميعاد.
+
+تغيير Password.
+
+---
+
+## هل أي User يقدر يشوف Password؟
+
+لا.
+
+---
+
+لازم.
+
+الحساب.
+
+يكون عنده.
+
+صلاحية.
+
+لقراءتها.
+
+---
+
+## Conclusion
+
+الكاتب ختم الجزء ده برسالة مهمة.
+
+---
+
+مش كل الـ Enumeration.
+
+بيبقى عن:
+
+Users.
+
+Groups.
+
+Computers.
+
+---
+
+لازم كمان.
+
+تعرف.
+
+وسائل الحماية.
+
+---
+
+لأنها.
+
+هي اللي هتحدد:
+
+- أنهي أدوات تشتغل.
+- أنهي أدوات تتمنع.
+- أنهي أوامر آمنة.
+- وإمتى تحتاج تستخدم أسلوب **Living Off The Land** بدل تنزيل أدوات خارجية.
+
+---
+
+## ملخص الفصل
+
+بعد إنهاء الفصل ده بقيت تعرف:
+
+- يعني إيه Security Controls وليه لازم تعمل لها Enumeration.
+- يعني إيه Living Off The Land وليه مهم أثناء الـ Pentest.
+- إزاي تعرف حالة Windows Defender باستخدام `Get-MpComputerStatus`.
+- إيه هو AppLocker وإزاي تعرف الـ Rules المطبقة باستخدام `Get-AppLockerPolicy`.
+- الفرق بين **Full Language Mode** و**Constrained Language Mode** في PowerShell.
+- إزاي تعرف الـ Language Mode الحالي.
+- يعني إيه LAPS وليه بيمنع إعادة استخدام كلمات مرور الـ Local Administrator.
+- استخدام `Find-LAPSDelegatedGroups` لمعرفة المجموعات التي تستطيع قراءة كلمات مرور LAPS.
+- استخدام `Find-AdmPwdExtendedRights` لمعرفة الحسابات التي تمتلك صلاحية **All Extended Rights**.
+- استخدام `Get-LAPSComputers` لمعرفة الأجهزة التي تستخدم LAPS وكلمات المرور وتاريخ انتهاء صلاحيتها (إذا كانت لديك الصلاحيات اللازمة).
+- إن معرفة وسائل الحماية تعتبر خطوة أساسية قبل بدء أي Enumeration أو Exploitation داخل بيئة Active Directory.
+
+----
+# Layer 14
+
+الفكرة الأساسية: أنت بالفعل حصلت على **Domain User credentials**، فبدل ما تفضل تعمل enumeration محدود، هتستغل الـ credentials دي عشان تجمع أكبر قدر ممكن من معلومات الـ AD: users، groups، computers، sessions، shares، permissions، ACLs، trusts، GPOs، وفي الآخر تستخدم **BloodHound** عشان تحول المعلومات دي لـ attack paths.
+
+---
+
+## أولاً: يعني إيه Credentialed Enumeration؟
+
+افترض إنك في Pentest دخلت الشبكة ووصلت لواحد من الـ domain users.
+
+مثلاً:
+
+```text
+Username: forend
+Password: Klmcargo2
+Domain: INLANEFREIGHT.LOCAL
+```
+
+أنت هنا **مش Domain Admin**.
+
+لكن مجرد إن معاك credentials صحيحة لمستخدم عادي، ده ممكن يديك كمية معلومات ضخمة عن الـ Active Directory.
+
+وده لأن AD معمول بحيث المستخدمين العاديين يقدروا يعرفوا حاجات كتير عن الـ domain.
+
+مثلاً ممكن تعرف:
+
+```text
+Users
+Groups
+Computers
+Group Membership
+Logged-on Users
+SMB Shares
+GPOs
+ACLs
+Trusts
+Sessions
+Privileged Users
+```
+
+والهدف مش مجرد "نجمع معلومات".
+
+الهدف الحقيقي:
+
+```text
+Valid Credentials
+       ↓
+Enumeration
+       ↓
+Find Interesting Users / Groups / Hosts
+       ↓
+Find Privileges / Sessions / Shares
+       ↓
+Find Attack Path
+       ↓
+Privilege Escalation / Lateral Movement
+```
+
+---
+
+## لازم يكون معاك Credentials
+
+الـ module بيأكد على نقطة مهمة جداً:
+
+أغلب الأدوات دي محتاجة authentication.
+
+يعني على الأقل لازم يكون عندك واحد من دول:
+
+```text
+Cleartext password
+NTLM hash
+SYSTEM access on domain-joined host
+```
+
+ليه؟
+
+لأنك لو معاك Domain credentials، تقدر تعمل LDAP/SMB/RPC queries بصلاحيات المستخدم ده.
+
+أما لو مفيش authentication، بعض المعلومات فقط ممكن تكون متاحة حسب إعدادات الـ domain.
+
+---
+
+## CrackMapExec
+
+## يعني إيه CrackMapExec؟
+
+**CrackMapExec أو CME** أداة قوية جداً في Windows/Active Directory pentesting.
+
+هي basically بتديك interface واحدة تتعامل بيها مع protocols مختلفة.
+
+الملف بيذكر:
+
+```text
+MSSQL
+SMB
+SSH
+WinRM
+```
+
+يعني مثلاً:
+
+```text
+crackmapexec smb
+crackmapexec winrm
+crackmapexec ssh
+crackmapexec mssql
+```
+
+والأداة حالياً مرتبطة بشكل كبير بـ **NetExec** كبديل/تطور لـ CME.
+
+---
+
+## ليه CME مهمة؟
+
+لأنك بدل ما تستخدم أداة مختلفة لكل حاجة، CME بتخليك تعمل حاجات كتير من مكان واحد.
+
+مثلاً:
+
+```text
+Authenticate
+↓
+Enumerate users
+↓
+Enumerate groups
+↓
+Enumerate shares
+↓
+Find logged-on users
+↓
+Check access
+↓
+Spider shares
+```
+
+وده بيوفر وقت ضخم أثناء الـ Pentest.
+
+---
+
+## `crackmapexec -h`
+
+لما تعمل:
+
+```bash
+crackmapexec -h
+```
+
+بيطلعلك الـ help menu.
+
+أهم حاجة هنا إنك تعرف الـ protocols:
+
+```text
+mssql
+smb
+ssh
+winrm
+```
+
+وكمان options عامة زي:
+
+```text
+-t
+--timeout
+--jitter
+--verbose
+```
+
+### `-t`
+
+عدد الـ threads اللي الأداة تستخدمها.
+
+مثلاً:
+
+```bash
+-t 50
+```
+
+يعني استخدم 50 concurrent threads.
+
+الـ default في المثال:
+
+```text
+100
+```
+
+---
+
+### `--timeout`
+
+أقصى وقت تنتظره لكل connection/thread.
+
+---
+
+### `--jitter`
+
+بيضيف delay عشوائي بين الاتصالات.
+
+وده ممكن يكون مفيد في بعض الـ assessment scenarios عشان تقلل الـ bursty traffic.
+
+---
+
+### `--verbose`
+
+يطلع information أكتر أثناء التشغيل.
+
+---
+
+## CME مع SMB
+
+لما تعمل:
+
+```bash
+crackmapexec smb -h
+```
+
+هتشوف options كتير جداً.
+
+أهم ones بالنسبة للـ enumeration:
+
+```text
+-u
+-p
+-d
+--users
+--groups
+--loggedon-users
+--shares
+```
+
+---
+
+## `-u`
+
+الـ username اللي هتستخدمه authentication.
+
+مثلاً:
+
+```bash
+-u forend
+```
+
+---
+
+## `-p`
+
+الـ password.
+
+```bash
+-p Klmcargo2
+```
+
+---
+
+## `-d`
+
+الـ domain.
+
+مثلاً:
+
+```bash
+-d INLANEFREIGHT.LOCAL
+```
+
+---
+
+## Target
+
+آخر جزء هو الجهاز اللي أنت بتعمل عليه enumeration.
+
+ممكن يكون:
+
+```text
+IP
+Hostname
+FQDN
+IP range
+CIDR
+File containing targets
+```
+
+مثلاً:
+
+```bash
+172.16.5.5
+```
+
+وده في اللاب هو الـ Domain Controller.
+
+---
+
+## Domain User Enumeration
+
+الأمر المستخدم:
+
+```bash
+sudo crackmapexec smb 172.16.5.5 -u forend -p Klmcargo2 --users
+```
+
+تعالى نفككه:
+
+```text
+sudo
+```
+
+تشغيل بصلاحيات أعلى على Linux.
+
+```text
+crackmapexec
+```
+
+الأداة.
+
+```text
+smb
+```
+
+هنستخدم SMB.
+
+```text
+172.16.5.5
+```
+
+الـ target.
+
+```text
+-u forend
+```
+
+الـ username.
+
+```text
+-p Klmcargo2
+```
+
+الـ password.
+
+```text
+--users
+```
+
+اعرض الـ domain users.
+
+---
+
+## الـ Output
+
+مثلاً:
+
+```text
+SMB 172.16.5.5 445 ACADEMY-EA-DC01
+```
+
+ده معناه إن CME اتصل بالـ host على:
+
+```text
+Port: 445
+Protocol: SMB
+Hostname: ACADEMY-EA-DC01
+```
+
+---
+
+بعدها:
+
+```text
+domain: INLANEFREIGHT.LOCAL
+```
+
+يعني الجهاز عضو في الـ domain ده.
+
+---
+
+ثم:
+
+```text
+[+] INLANEFREIGHT.LOCAL\forend:Klmcargo2
+```
+
+دي معناها:
+
+**الـ credentials صحيحة والـ authentication نجح.**
+
+---
+
+## `badPwdCount`
+
+بعدها تلاقي:
+
+```text
+administrator badpwdcount: 0
+avazquez badpwdcount: 3
+```
+
+دي مهمة جداً.
+
+`badPwdCount` = عدد محاولات تسجيل الدخول الفاشلة المسجلة للحساب.
+
+مثلاً:
+
+```text
+administrator → 0
+avazquez → 3
+```
+
+لو بتعمل password spraying، المعلومة دي ممكن تساعدك تعرف الحسابات اللي بالفعل عندها failed attempts.
+
+الفكرة إنك تكون حذر من **account lockout**.
+
+مثلاً:
+
+```text
+User A
+badPwdCount = 0
+
+User B
+badPwdCount = 3
+```
+
+لو policy بتاعت الشركة بتقفل الحساب بعد عدد معين من المحاولات، User B أخطر في إنك تجرب عليه passwords إضافية.
+
+---
+
+## Domain Groups
+
+الأمر:
+
+```bash
+sudo crackmapexec smb 172.16.5.5 -u forend -p Klmcargo2 --groups
+```
+
+بدل:
+
+```text
+--users
+```
+
+استخدمنا:
+
+```text
+--groups
+```
+
+عشان نجيب الـ groups.
+
+---
+
+## ليه الـ Groups مهمة؟
+
+لأن الـ user نفسه ممكن يكون عادي، لكن يكون عضو في group عندها privileges عالية.
+
+مثلاً:
+
+```text
+forend
+   ↓
+IT Admins
+   ↓
+Administrators
+```
+
+فأنت لازم تفهم:
+
+```text
+User
+↓
+Groups
+↓
+Privileges
+```
+
+---
+
+## مثال من الـ output
+
+```text
+Administrators membercount: 3
+```
+
+يعني group اسمها:
+
+```text
+Administrators
+```
+
+وفيها 3 members.
+
+---
+
+```text
+Domain Admins membercount: 19
+```
+
+دي أهم بكتير.
+
+لأن:
+
+```text
+Domain Admins
+```
+
+من أعلى الـ privileged groups في الـ domain.
+
+---
+
+وفيه:
+
+```text
+Backup Operators
+```
+
+وده group مهم برضه لأن بعض الصلاحيات المرتبطة بالـ backup ممكن تكون powerful جداً.
+
+---
+
+وفي المثال فيه:
+
+```text
+Executives
+Accounting
+Engineering
+Human Resources
+```
+
+مش كلهم privileged بالضرورة.
+
+لكن مهم تعرف مين موجود فيهم، لأن group membership ممكن يكشف relationships أو paths مفيدة في الـ assessment.
+
+---
+
+## Logged-on Users
+
+دلوقتي بدل ما نسأل:
+
+> مين كل users في الـ domain؟
+
+ممكن نسأل:
+
+> مين currently logged on على الجهاز ده؟
+
+الأمر:
+
+```bash
+sudo crackmapexec smb 172.16.5.130 -u forend -p Klmcargo2 --loggedon-users
+```
+
+الـ target هنا:
+
+```text
+172.16.5.130
+```
+
+والـ host:
+
+```text
+ACADEMY-EA-FILE
+```
+
+يعني File Server.
+
+---
+
+## ليه دي مهمة؟
+
+لأنك ممكن تلاقي على الجهاز مستخدم privileged.
+
+مثلاً الـ output فيه:
+
+```text
+clusteragent
+lab_adm
+svc_qualys
+wley
+```
+
+لو عرفت إن:
+
+```text
+svc_qualys
+```
+
+Domain Admin، 
+وجوده logged on على جهاز معين بيخلي الجهاز interesting جداً.
+
+ليه؟
+
+لأنك ممكن تعتبر الجهاز ده:
+
+```text
+Potential privilege pivot
+```
+
+يعني جهاز فيه session لمستخدم أعلى منك في الصلاحيات.
+
+---
+
+## `(Pwn3d!)`
+
+في الـ output:
+
+```text
+[+] INLANEFREIGHT.LOCAL\forend:Klmcargo2 (Pwn3d!)
+```
+
+دي معناها إن الـ credentials نجحت، والـ user عنده **local administrative access** على الجهاز حسب تفسير CME.
+
+يعني مثلاً:
+
+```text
+forend
+   ↓
+local admin
+   ↓
+ACADEMY-EA-FILE
+```
+
+ودي معلومة مهمة جداً.
+
+لأنك مش بس عرفت إن الـ credentials valid.
+
+أنت عرفت كمان:
+
+```text
+What host?
+What access?
+What users are logged in?
+```
+
+---
+
+## Share Enumeration
+
+دلوقتي عايزين نعرف الـ SMB shares الموجودة.
+
+الأمر:
+
+```bash
+sudo crackmapexec smb 172.16.5.5 -u forend -p Klmcargo2 --shares
+```
+
+---
+
+## يعني إيه SMB Share؟
+
+تقدر تعتبرها folder/network resource موجود على جهاز وتقدر الأجهزة التانية تدخل عليه عن طريق SMB.
+
+أمثلة:
+
+```text
+C$
+ADMIN$
+IPC$
+SYSVOL
+NETLOGON
+Department Shares
+User Shares
+```
+
+---
+
+## أهم حاجة: Permissions
+
+الـ output ممكن يقول:
+
+```text
+READ
+WRITE
+NO ACCESS
+```
+
+وده مهم جداً.
+
+مثلاً:
+
+```text
+Department Shares → READ
+```
+
+معناه تقدر تقرأ.
+
+لكن:
+
+```text
+ADMIN$ → NO ACCESS
+```
+
+معناه مش عندك access.
+
+---
+
+## `ADMIN$` و `C$`
+
+دول **administrative shares** في Windows.
+
+مثلاً:
+
+```text
+C$
+```
+
+بيمثل access للـ C: drive عبر SMB.
+
+و:
+
+```text
+ADMIN$
+```
+
+مرتبط بـ Windows directory والإدارة عن بعد.
+
+لو standard domain user عنده:
+
+```text
+NO ACCESS
+```
+
+ده طبيعي.
+
+لكن لو user عنده administrative privileges، ممكن يحصل access.
+
+---
+
+## `IPC$`
+
+ده share خاص بالـ inter-process communication وبعض عمليات الإدارة/الـ RPC.
+
+وجود:
+
+```text
+READ
+```
+
+مش معناه إنك بتقرأ ملفات عادية منه.
+
+---
+
+## `NETLOGON`
+
+Share موجود عادة على Domain Controllers.
+
+بيستخدم في حاجات مرتبطة بالـ domain logon والـ scripts والسياسات ذات الصلة.
+
+---
+
+## `SYSVOL`
+
+ده مهم جداً في Active Directory.
+
+بيحتوي على بيانات مرتبطة بالـ domain، ومنها Group Policy-related files.
+
+وغالباً domain users عندهم read access عليه.
+
+---
+
+## Shares Interesting
+
+الملف بيلفت النظر لحاجات زي:
+
+```text
+Department Shares
+User Shares
+ZZZ_archive
+```
+
+ليه؟
+
+لأن الـ custom shares ممكن تحتوي على:
+
+```text
+Passwords
+Scripts
+Configuration files
+Documents
+PII
+Credentials
+Backups
+```
+
+يعني الـ share نفسه مش vulnerability.
+
+لكن **المحتوى الموجود عليه ممكن يكون حساس جداً**.
+
+---
+
+## Spider Plus
+
+بدل ما تدخل كل folder manually، CME عنده module:
+
+```text
+spider_plus
+```
+
+الأمر:
+
+```bash
+sudo crackmapexec smb 172.16.5.5 \
+-u forend \
+-p Klmcargo2 \
+-M spider_plus \
+--share 'Department Shares'
+```
+
+---
+
+## يعني إيه Spidering؟
+
+يعني الأداة تمشي recursively داخل الـ share وتشوف الملفات اللي الـ account يقدر يوصل لها.
+
+بدل:
+
+```text
+Department Shares
+    ↓
+Accounting
+    ↓
+Private
+    ↓
+file1
+    ↓
+file2
+    ↓
+...
+```
+
+الأداة تعمل ده بشكل automated.
+
+---
+
+## الـ Output
+
+هتلاقي:
+
+```text
+OUTPUT: /tmp/cme_spider_plus
+```
+
+يعني النتائج هتتخزن هنا.
+
+وفي المثال:
+
+```text
+/tmp/cme_spider_plus/172.16.5.5.json
+```
+
+---
+
+## ليه JSON؟
+
+عشان تقدر بعدين تعمل:
+
+```text
+Search
+Filter
+Parse
+Report
+```
+
+بدل ما تعتمد على terminal output.
+
+---
+
+## مثال
+
+الـ JSON فيه:
+
+```json
+"Accounting/Private/AddSelect.bat": {
+    "atime_epoch": "...",
+    "ctime_epoch": "...",
+    "mtime_epoch": "...",
+    "size": "278 Bytes"
+}
+```
+
+هنا الأداة بتقولك:
+
+```text
+Path
+Access time
+Creation/change-related timestamps
+Modification time
+Size
+```
+
+مش بالضرورة محتوى الملف نفسه.
+
+بعد كده تقدر تحدد files interesting وتفحصها حسب صلاحياتك.
+
+---
+
+## SMBMap
+
+الأداة التانية:
+
+```text
+SMBMap
+```
+
+وظيفتها الأساسية enumeration لـ SMB.
+
+الملف بيذكر إنها تقدر:
+
+```text
+List shares
+Show permissions
+List directories recursively
+Search file contents
+Download files
+Upload files
+Execute commands
+```
+
+لكن في مرحلة enumeration إحنا مهتمين بالجزء الأول.
+
+---
+
+### SMBMap Check Access
+
+الأمر:
+
+```bash
+smbmap -u forend \
+-p Klmcargo2 \
+-d INLANEFREIGHT.LOCAL \
+-H 172.16.5.5
+```
+
+نفككه:
+
+```text
+-u
+```
+
+username
+
+```text
+-p
+```
+
+password
+
+```text
+-d
+```
+
+domain
+
+```text
+-H
+```
+
+target host
+
+---
+
+## النتيجة
+
+مثلاً:
+
+```text
+ADMIN$ → NO ACCESS
+C$ → NO ACCESS
+Department Shares → READ ONLY
+IPC$ → READ ONLY
+NETLOGON → READ ONLY
+SYSVOL → READ ONLY
+User Shares → READ ONLY
+ZZZ_archive → READ ONLY
+```
+
+وده بيديك صورة سريعة جداً عن:
+
+> "أنا كـ forend أقدر أعمل إيه على SMB بتاع الجهاز ده؟"
+
+---
+
+## Recursive Enumeration
+
+دلوقتي عايزين نشوف directories داخل:
+
+```text
+Department Shares
+```
+
+الأمر:
+
+```bash
+smbmap -u forend \
+-p Klmcargo2 \
+-d INLANEFREIGHT.LOCAL \
+-H 172.16.5.5 \
+-R 'Department Shares' \
+--dir-only
+```
+
+---
+
+## `-R`
+
+يعني recursive.
+
+يعني مش بس:
+
+```text
+Department Shares
+```
+
+لكن يدخل جوه subdirectories.
+
+---
+
+## `--dir-only`
+
+دي مهمة.
+
+بدونها ممكن تشوف files وdirectories.
+
+مع:
+
+```text
+--dir-only
+```
+
+أنت مهتم بالـ directories فقط.
+
+---
+
+## النتيجة
+
+مثلاً:
+
+```text
+Accounting
+Executives
+Finance
+HR
+IT
+Legal
+Marketing
+Operations
+R&D
+Temp
+Warehouse
+```
+
+ده بيديك structure للشير.
+
+وبعدها تقدر تحدد الأماكن اللي تستحق investigation.
+
+مثلاً:
+
+```text
+IT
+Finance
+HR
+Executives
+```
+
+طبيعي تكون interesting أكتر من directories عشوائية.
+
+لكن مش معنى كده إنك تفترض إن فيها secrets؛ لازم تفحص فعلياً.
+
+---
+
+## rpcclient
+
+دلوقتي عندنا أداة مختلفة:
+
+```text
+rpcclient
+```
+
+دي جزء من Samba.
+
+بتتعامل مع:
+
+```text
+MS-RPC
+```
+
+وممكن تستخدمها في enumeration للـ AD objects.
+
+---
+
+## SMB NULL Session
+
+ميزة مهمة هنا:
+
+ممكن أحياناً تعمل connection بدون credentials.
+
+الأمر:
+
+```bash
+rpcclient -U "" -N 172.16.5.5
+```
+
+معناه تقريباً:
+
+```text
+-U ""
+```
+
+username فاضي.
+
+```text
+-N
+```
+
+ما تسألش عن password.
+
+لو الـ target يسمح بـ NULL session، هتدخل RPC interface.
+
+---
+
+## مهم جداً
+
+مش معنى إن الأمر ده موجود إن كل AD environment هيسمح بيه.
+
+ده يعتمد على configuration.
+
+في environments حديثة ومؤمنة غالباً الوصول ده بيكون restricted.
+
+---
+
+## RID
+
+هنا لازم نفهم حاجة أساسية جداً في Windows Security:
+
+```text
+SID
+RID
+```
+
+---
+
+## SID
+
+الـ SID هو identifier فريد للـ security principal.
+
+مثلاً domain SID في الملف:
+
+```text
+S-1-5-21-3842939050-3880317879-2865463114
+```
+
+---
+
+## RID
+
+الـ RID هو الجزء اللي بيميز object معين داخل الـ domain SID.
+
+مثلاً:
+
+```text
+Domain SID
++
+RID
+=
+Full User SID
+```
+
+---
+
+## مثال الملف
+
+Domain SID:
+
+```text
+S-1-5-21-3842939050-3880317879-2865463114
+```
+
+User:
+
+```text
+htb-student
+```
+
+RID:
+
+```text
+0x457
+```
+
+والـ hex:
+
+```text
+0x457
+```
+
+يساوي decimal:
+
+```text
+1111
+```
+
+فالـ full SID:
+
+```text
+S-1-5-21-3842939050-3880317879-2865463114-1111
+```
+
+وده بيمثل user محدد داخل الـ domain.
+
+---
+
+## ليه RID مهم؟
+
+لأن بعض الـ built-in accounts عندها RIDs معروفة.
+
+مثلاً:
+
+```text
+Administrator
+RID = 500
+```
+
+والـ hexadecimal:
+
+```text
+0x1f4
+```
+
+فلو شفت:
+
+```text
+rid:0x1f4
+```
+
+تقدر تعرف إن ده الـ built-in Administrator account في السياق المناسب.
+
+---
+
+## `queryuser`
+
+داخل rpcclient ممكن تعمل:
+
+```text
+queryuser 0x457
+```
+
+وده معناه:
+
+> هات معلومات الـ AD user اللي RID بتاعه 0x457.
+
+---
+
+## النتيجة
+
+مثلاً:
+
+```text
+User Name: htb-student
+Full Name: Htb Student
+```
+
+وتلاقي information إضافية زي:
+
+```text
+Logon Time
+Password last set
+Password can change
+bad_password_count
+logon_count
+user_rid
+group_rid
+```
+
+---
+
+## `bad_password_count`
+
+هنا نفس الفكرة اللي شفناها في CME.
+
+بتعرف عدد محاولات الـ password الفاشلة.
+
+---
+
+## `logon_count`
+
+عدد مرات تسجيل الدخول المسجلة للحساب.
+
+---
+
+## `user_rid`
+
+الـ RID الخاص بالـ user.
+
+---
+
+## `enumdomusers`
+
+بدل ما تعرف RID واحد وتعمل:
+
+```text
+queryuser
+```
+
+تقدر تعمل:
+
+```text
+enumdomusers
+```
+
+وده يرجع users والـ RIDs بتاعتهم.
+
+مثلاً:
+
+```text
+administrator → 0x1f4
+guest         → 0x1f5
+krbtgt        → 0x1f6
+lab_adm       → 0x3e9
+htb-student   → 0x457
+avazquez      → 0x458
+```
+
+وده بيديك mapping:
+
+```text
+Username ↔ RID
+```
+
+وده مفيد جداً في enumeration.
+
+---
+
+## Impacket
+
+دلوقتي بندخل على toolkit ضخم جداً:
+
+```text
+Impacket
+```
+
+Impacket عبارة عن Python toolkit للتعامل مع Windows protocols وعمليات enumeration/interactions مختلفة.
+
+في الملف التركيز هنا على:
+
+```text
+psexec.py
+wmiexec.py
+```
+
+---
+
+## `psexec.py`
+
+دي من أشهر أدوات Impacket.
+
+فكرتها:
+
+لو عندك credentials لمستخدم **Local Administrator** على جهاز، تقدر تعمل remote execution.
+
+---
+
+## بتشتغل إزاي conceptually؟
+
+حسب الملف:
+
+```text
+Credentials
+    ↓
+Connect to ADMIN$
+    ↓
+Upload executable
+    ↓
+Create Windows service
+    ↓
+Service Control Manager
+    ↓
+Named Pipe
+    ↓
+Remote shell
+```
+
+والـ shell بيكون:
+
+```text
+SYSTEM
+```
+
+على الـ target.
+
+---
+
+## مثال
+
+```bash
+psexec.py inlanefreight.local/wley:'transporter@4'@172.16.5.125
+```
+
+الـ structure:
+
+```text
+domain/user:password@target
+```
+
+---
+
+## ليه لازم Local Admin؟
+
+لأن الطريقة محتاجة صلاحيات administrative على الجهاز المستهدف.
+
+يعني:
+
+```text
+Valid credentials
+```
+
+لوحدها مش كفاية.
+
+لازم:
+
+```text
+Valid credentials
++
+Local Administrator privilege
+```
+
+---
+
+## ليه `SYSTEM` مهمة؟
+
+لو دخلت:
+
+```text
+SYSTEM
+```
+
+فأنت واخد أعلى مستوى من privileges على الجهاز المحلي تقريباً.
+
+وده يفتح لك مجال كبير لـ:
+
+```text
+Local enumeration
+Credential access
+Token/session investigation
+Lateral movement
+Persistence
+```
+
+حسب نطاق الـ assessment.
+
+---
+
+## `wmiexec.py`
+
+دي طريقة تانية للـ remote command execution.
+
+لكن بدل ما تعتمد على إنشاء service زي psexec، بتستخدم:
+
+```text
+WMI
+```
+
+يعني:
+
+```text
+Windows Management Instrumentation
+```
+
+---
+
+## الفرق الأساسي
+
+`psexec.py`:
+
+```text
+Creates service
+↓
+Executes
+↓
+SYSTEM
+```
+
+`wmiexec.py`:
+
+```text
+WMI
+↓
+Execute command
+↓
+Runs under connected user's context
+```
+
+يعني لو دخلت بـ:
+
+```text
+wley
+```
+
+الأوامر غالباً هتشتغل كـ:
+
+```text
+wley
+```
+
+مش SYSTEM.
+
+---
+
+## ليه WMI أقل وضوحاً أحياناً؟
+
+الملف بيذكر إن `wmiexec.py`:
+
+- لا يسقط executable بنفس طريقة psexec
+    
+- يستخدم WMI
+    
+- shell شبه interactive
+    
+- ممكن ينتج logs أقل من بعض الطرق الأخرى
+    
+
+لكن:
+
+**ده مش معناه إنه invisible.**
+
+الملف نفسه بيوضح إن defenders ممكن يشوفوا process creation events، ومنها Event ID:
+
+```text
+4688
+```
+
+لإن WMI ممكن يؤدي إلى تشغيل:
+
+```text
+cmd.exe
+```
+
+على الـ target.
+
+وكمان modern AV/EDR ممكن يكتشف السلوك.
+
+---
+
+## Windapsearch
+
+دلوقتي أداة مختلفة:
+
+```text
+Windapsearch
+```
+
+دي Python script بتستخدم:
+
+```text
+LDAP queries
+```
+
+عشان تعمل enumeration للـ Active Directory.
+
+تقدر تجيب:
+
+```text
+Users
+Groups
+Computers
+Privileged Users
+Domain Admins
+GPOs
+SPNs
+Unconstrained delegation
+```
+
+وغيرها حسب الخيارات.
+
+---
+
+## LDAP يعني إيه؟
+
+ببساطة:
+
+Active Directory
+بيخزن objects في directory.
+
+زي:
+
+```text
+Users
+Groups
+Computers
+Organizational Units
+```
+
+والـ LDAP هو protocol تستخدمه عشان تسأل الـ directory عن البيانات دي.
+
+فبدل ما تقول:
+
+> "هاتلي كل users"
+
+بـ SMB/RPC، هنا أنت بتقول:
+
+> "اعمل LDAP query على الـ directory وهاتلي الـ objects اللي أنا عايزها."
+
+---
+
+## أهم Windapsearch Options
+
+```text
+-G
+```
+
+كل groups.
+
+```text
+-U
+```
+
+كل users.
+
+```text
+-C
+```
+
+كل computers.
+
+```text
+--da
+```
+
+أعضاء Domain Admins.
+
+```text
+-PU
+```
+
+privileged users، مع recursive nested group lookup.
+
+```text
+--gpos
+```
+
+GPOs.
+
+---
+
+## `--da`
+
+الأمر:
+
+```bash
+python3 windapsearch.py \
+--dc-ip 172.16.5.5 \
+-u forend@inlanefreight.local \
+-p Klmcargo2 \
+--da
+```
+
+المهم هنا:
+
+```text
+--dc-ip
+```
+
+مين الـ Domain Controller.
+
+```text
+-u
+```
+
+LDAP bind account.
+
+```text
+-p
+```
+
+password.
+
+```text
+--da
+```
+
+جيب Domain Admins.
+
+---
+
+## LDAP Bind
+
+في الـ output:
+
+```text
+Attempting bind
+...success!
+Binded as:
+INLANEFREIGHT\forend
+```
+
+يعني الأداة عملت authentication على LDAP باستخدام:
+
+```text
+forend
+```
+
+---
+
+## `defaultNamingContext`
+
+الأداة تلاقي:
+
+```text
+DC=INLANEFREIGHT,DC=LOCAL
+```
+
+ده الـ LDAP Distinguished Name الخاص بالـ domain.
+
+يعني:
+
+```text
+INLANEFREIGHT.LOCAL
+```
+
+بيتم تمثيله في LDAP كـ:
+
+```text
+DC=INLANEFREIGHT,DC=LOCAL
+```
+
+---
+
+## Domain Admin Enumeration
+
+النتيجة:
+
+```text
+Found 28 Domain Admins
+```
+
+وبعدين:
+
+```text
+Administrator
+lab_adm
+Matthew Morgan
+...
+```
+
+ده مهم جداً لأنك عرفت مين أعضاء:
+
+```text
+Domain Admins
+```
+
+---
+
+## `-PU`
+
+دي واحدة من أهم options.
+
+```bash
+-PU
+```
+
+معناها:
+
+> دور على privileged users، بما في ذلك nested group memberships.
+
+---
+
+## يعني إيه Nested Groups؟
+
+مثلاً:
+
+```text
+User A
+   ↓
+Group A
+   ↓
+Group B
+   ↓
+Domain Admins
+```
+
+User A مش مكتوب مباشرة كعضو في Domain Admins.
+
+لكن بسبب الـ nesting:
+
+```text
+User A
+```
+
+في الآخر عنده privileges مرتبطة بـ:
+
+```text
+Domain Admins
+```
+
+وده ممكن يكون سهل جداً يتفوت لو أنت بتبص على direct membership فقط.
+
+عشان كده `-PU` بيعمل recursive lookup.
+
+---
+
+## Enterprise Admins
+
+الـ output كمان بيجيب:
+
+```text
+Enterprise Admins
+```
+
+مثلاً:
+
+```text
+Found 3 nested users
+```
+
+وفيهم:
+
+```text
+Administrator
+lab_adm
+Sharepoint Admin
+```
+
+وده بيوضح ليه nested groups خطيرة.
+
+ممكن user شكله عادي في group معينة، لكن عن طريق سلسلة memberships يوصل في الآخر لصلاحيات ضخمة.
+
+---
+
+## BloodHound.py
+
+وده أهم جزء تقريباً في الـ module.
+
+```text
+BloodHound
+```
+
+مش مجرد tool تعمل enumeration.
+
+هو بيحول الـ AD data إلى **Graph**.
+
+يعني بدل ما عندك:
+
+```text
+User A
+Group B
+Computer C
+ACL D
+Session E
+```
+
+كلهم منفصلين في outputs مختلفة، BloodHound يربطهم ببعض.
+
+---
+
+## يعني إيه Graph؟
+
+تخيل:
+
+```text
+User
+  |
+  | MemberOf
+  ↓
+Group
+  |
+  | AdminTo
+  ↓
+Computer
+  |
+  | HasSession
+  ↓
+Domain Admin
+```
+
+BloodHound يرسم العلاقات دي.
+
+وده يخليك تشوف:
+
+> "لو أنا بدأت من الـ user ده، إيه أقصر path ممكن يوصلني لمكان privileged؟"
+
+---
+
+## ليه BloodHound قوية؟
+
+لأن AD environments ممكن تكون ضخمة جداً.
+
+مثلاً في اللاب:
+
+```text
+564 computers
+2951 users
+183 groups
+2 trusts
+```
+
+لو هتحلل كل ده manually، الموضوع مرهق جداً.
+
+BloodHound تحول البيانات لـ graph وتساعدك تكتشف:
+
+```text
+Attack Paths
+ACL abuse opportunities
+Group relationships
+Sessions
+Local Admin access
+RDP
+WinRM
+GPO relationships
+Trusts
+```
+
+الملف بيصفها بأنها من أقوى أدوات auditing للـ Active Directory، وبيوضح إنها تستخدم **graph theory** لتمثيل العلاقات.
+
+---
+
+## BloodHound بيتكون من جزئين مهمين
+
+## Collector / Ingestor
+
+في Linux:
+
+```text
+BloodHound.py
+```
+
+وفي Windows تاريخياً:
+
+```text
+SharpHound
+```
+
+وظيفتهم:
+
+```text
+Collect AD data
+```
+
+---
+
+## BloodHound GUI
+
+ده الجزء اللي:
+
+```text
+يستقبل JSON
+↓
+يحط البيانات في database
+↓
+يعرض Graph
+↓
+يشغل Queries
+```
+
+---
+
+## BloodHound.py Options
+
+مثلاً:
+
+```text
+-c
+-u
+-p
+-ns
+-d
+-dc
+```
+
+---
+
+## `-c`
+
+Collection method.
+
+ممكن تجمع حاجات معينة:
+
+```text
+Group
+LocalAdmin
+Session
+Trusts
+DCOnly
+ACL
+RDP
+PSRemote
+ObjectProps
+```
+
+أو:
+
+```text
+all
+```
+
+---
+
+## `-ns`
+
+Nameserver.
+
+في المثال:
+
+```text
+-ns 172.16.5.5
+```
+
+يعني استخدم الـ Domain Controller كـ DNS nameserver.
+
+---
+
+## `-d`
+
+الـ domain:
+
+```text
+-d inlanefreight.local
+```
+
+---
+
+## `-c all`
+
+دي بتقول:
+
+> اجمع أكبر مجموعة من البيانات المدعومة في collection configuration المستخدمة.
+
+في المثال:
+
+```bash
+sudo bloodhound-python \
+-u 'forend' \
+-p 'Klmcargo2' \
+-ns 172.16.5.5 \
+-d inlanefreight.local \
+-c all
+```
+
+---
+
+## BloodHound Output
+
+الـ output يقول:
+
+```text
+Found 1 domains
+Found 2 domains in the forest
+Found 564 computers
+Found 2951 users
+Found 183 groups
+Found 2 trusts
+```
+
+وده مهم جداً.
+
+أنت في command واحد عرفت حجم الـ environment تقريباً.
+
+---
+
+## يعني إيه Forest؟
+
+في Active Directory:
+
+```text
+Forest
+  ├── Domain A
+  ├── Domain B
+  └── Domain C
+```
+
+فالـ forest ممكن تحتوي على أكثر من domain.
+
+في المثال:
+
+```text
+1 domain
+2 domains in forest
+```
+
+يعني الـ environment أكبر من مجرد domain واحد.
+
+---
+
+## يعني إيه Trust؟
+
+الـ trust هو relationship بين domains/forests تسمح بمستويات معينة من authentication/access relationships.
+
+وجود:
+
+```text
+2 trusts
+```
+
+مهم لأن trust relationships ممكن توسع نطاق الـ attack-path analysis.
+
+---
+
+## ملفات BloodHound
+
+بعد ما collector يخلص، هتلاقي files زي:
+
+```text
+*_computers.json
+*_domains.json
+*_groups.json
+*_users.json
+```
+
+كل ملف يحتوي نوع مختلف من الـ collected data.
+
+---
+
+## Neo4j
+
+BloodHound يستخدم graph database، والـ lab هنا بيستخدم:
+
+```text
+Neo4j
+```
+
+تقدر تشغلها مثلاً:
+
+```bash
+sudo neo4j start
+```
+
+---
+
+## BloodHound GUI
+
+بعد كده تفتح BloodHound وتعمل:
+
+```text
+Upload Data
+```
+
+وترفع الـ JSON files.
+
+ممكن ترفعهم individually أو تعمل:
+
+```bash
+zip -r ilfreight_bh.zip *.json
+```
+
+وبعدين ترفع الـ ZIP.
+
+---
+
+## Analysis Tab
+
+هنا القوة الحقيقية.
+
+BloodHound عنده built-in queries.
+
+مثلاً:
+
+```text
+Find Shortest Paths To Domain Admins
+```
+
+وده معناه:
+
+> حاول تلاقي أقصر relationship path من nodes معينة إلى Domain Admins.
+
+---
+
+## Attack Path
+
+مثلاً BloodHound ممكن يوريك حاجة بالشكل ده:
+
+```text
+Your User
+   ↓
+MemberOf
+   ↓
+Interesting Group
+   ↓
+AdminTo
+   ↓
+Computer
+   ↓
+HasSession
+   ↓
+Privileged User
+```
+
+أنت هنا مش بتخمن.
+
+أنت عندك graph مبني على relationships موجودة فعلاً في الـ AD data.
+
+---
+
+## Cypher
+
+BloodHound بيدعم custom queries باستخدام:
+
+```text
+Cypher
+```
+
+Cypher 
+هي query language مرتبطة بالـ graph database.
+
+يعني بدل الـ built-in queries فقط، تقدر تعمل queries custom حسب اللي عايز تبحث عنه.
+
+مثلاً conceptually:
+
+```text
+Find users
+that belong to privileged groups
+and have sessions
+on computers
+```
+
+وتخلي BloodHound يطلعلك العلاقات دي.
+
+---
+
+## الصورة الكبيرة للـ Module
+
+لو عايز تحفظ الـ module كله كـ workflow، احفظه بالشكل ده:
+
+```text
+                Valid Domain Credentials
+                         |
+                         ↓
+                ┌─────────────────┐
+                │ Credentialed    │
+                │ Enumeration     │
+                └────────┬────────┘
+                         |
+          ┌──────────────┼──────────────┐
+          ↓              ↓              ↓
+        CME          SMBMap        rpcclient
+          |              |              |
+          ↓              ↓              ↓
+       Users          Shares         RIDs
+       Groups         Files          Users
+       Sessions       Permissions    Objects
+          |              |              |
+          └──────────────┼──────────────┘
+                         ↓
+                    Windapsearch
+                         |
+                         ↓
+               LDAP-based Enumeration
+                         |
+                  ┌──────┴──────┐
+                  ↓             ↓
+             Domain Admins   Privileged
+                              Users
+                  \             /
+                   \           /
+                    ↓         ↓
+                     BloodHound.py
+                           |
+                           ↓
+                    AD Graph Database
+                           |
+                           ↓
+                    BloodHound GUI
+                           |
+                           ↓
+                     Attack Paths
+                           |
+                           ↓
+              Lateral Movement /
+              Privilege Escalation
+```
+
+---
+
+## أهم فرق بين الأدوات
+
+|Tool|بتستخدمها في إيه؟|
+|---|---|
+|CME|SMB enumeration + users + groups + sessions + shares + modules|
+|SMBMap|SMB shares + permissions + directory/file enumeration|
+|rpcclient|MS-RPC enumeration + users/RIDs وغيرها|
+|Impacket|Windows protocol interaction + remote execution وأدوات أخرى|
+|psexec.py|Remote execution باستخدام Local Admin credentials|
+|wmiexec.py|Remote command execution عبر WMI|
+|Windapsearch|LDAP-based AD enumeration|
+|BloodHound.py|Collect AD relationships/data|
+|BloodHound GUI|Visualize relationships وattack paths|
+
+---
+
+## أهم حاجة تفهمها كـ Pentester
+
+الموضوع كله مش:
+
+> "أنا عرفت أستخدم 7 tools."
+
+الموضوع الحقيقي هو إنك تبدأ تربط المعلومات ببعض.
+
+مثلاً:
+
+```text
+1. لقيت user
+        ↓
+2. عرفت group membership
+        ↓
+3. اكتشفت إن group دي privileged
+        ↓
+4. عرفت جهاز عليه user privileged logged in
+        ↓
+5. اكتشفت إن عندك Local Admin على الجهاز
+        ↓
+6. BloodHound أكد relationship/path
+```
+
+كل معلومة لوحدها ممكن تكون مش خطيرة.
+
+لكن لما تجمعهم:
+
+```text
+Identity
++
+Groups
++
+Privileges
++
+Sessions
++
+Machines
++
+Shares
++
+ACLs
++
+Trusts
+```
+
+تقدر تبدأ تفهم **الـ attack surface الحقيقي للـ Active Directory**.
+
+وده بالضبط السبب إن الـ module بدأ بـ credentialed enumeration وانتهى بـ BloodHound وattack paths.
+
+---
+
+## الخلاصة اللي تتحفظ
+
+لو داخل AD Pentest ومعاك low-priv domain credentials، اسأل نفسك بالترتيب:
+
+```text
+مين الـ Users؟
+        ↓
+مين الـ Groups؟
+        ↓
+مين الـ Privileged Users؟
+        ↓
+مين عضو في إيه؟
+        ↓
+مين Logged In فين؟
+        ↓
+أنا عندي access على أنهي Hosts؟
+        ↓
+أنا أقدر أقرأ أنهي Shares؟
+        ↓
+فيه ملفات حساسة؟
+        ↓
+إيه الـ LDAP relationships؟
+        ↓
+إيه الـ ACLs / Sessions / Trusts؟
+        ↓
+BloodHound
+        ↓
+إيه أقصر Attack Path؟
+```
+
+**وده هو جوهر Credentialed Enumeration:** مش مجرد جمع data، لكن تحويل الـ data دي إلى **فهم للعلاقات والصلاحيات والـ attack paths داخل الـ AD**.
+
+
+# Layer 15
+## 1. الفكرة الأساسية: Enumeration من Windows
+
+في الجزء اللي فات كان عندنا Linux attack host واستخدمنا أدوات زي:
+
+`NetExec/CME → SMBMap → rpcclient → Windapsearch → BloodHound.py`
+
+هنا نفس الفكرة، لكن الـ attack host بتاعنا **Windows**.
+
+الأدوات الأساسية في الجزء ده:
+
+- ActiveDirectory PowerShell Module
+    
+- PowerView
+    
+- SharpView
+    
+- Snaffler
+    
+- SharpHound + BloodHound
+    
+- بالإضافة لـ Windows built-in commands
+    
+
+الهدف مش إننا نلاقي ثغرة واحدة وخلاص. إحنا بنبني **صورة كاملة للـ Active Directory**: users، groups، trusts، shares، permissions، sessions، ACLs، SPNs، local admin access وغيرها. والـ enumeration ممكن ينتج عنه findings مفيدة للـ report حتى لو مش أدت مباشرة لـ privilege escalation.
+
+---
+
+## 2. ActiveDirectory PowerShell Module
+
+أول حاجة مهمة:
+
+Windows عنده 
+PowerShell module اسمه:
+
+```powershell
+ActiveDirectory
+```
+
+وده عبارة عن مجموعة كبيرة من PowerShell cmdlets للتعامل مع Active Directory.
+
+الملف بيذكر إن فيه **147 cmdlets** وقت كتابة المادة.
+
+الفكرة الجميلة هنا إنك بدل ما تنزل tool زي PowerView، ممكن تستخدم الأدوات الموجودة أصلاً على Windows.
+
+وده ممكن يكون أقل وضوحًا في بعض البيئات من إنك تدخل executable جديد على الجهاز، ودي نقطة الـ OPSEC اللي المادة بتشير لها.
+
+---
+
+## 3. الأول نشوف الـ Modules الموجودة
+
+نفذ:
+
+```powershell
+Get-Module
+```
+
+ده بيوريك الـ modules اللي متاحة/loaded والـ commands اللي بتصدرها.
+
+مثلاً:
+
+```text
+ModuleType Version Name
+---------- ------- ----
+Manifest   3.1.0.0 Microsoft.PowerShell.Utility
+Script     2.0.0   PSReadline
+```
+
+هنا تلاحظ إن:
+
+```text
+ActiveDirectory
+```
+
+مش موجودة.
+
+يبقى نحملها:
+
+```powershell
+Import-Module ActiveDirectory
+```
+
+وبعدين:
+
+```powershell
+Get-Module
+```
+
+دلوقتي المفروض تشوف:
+
+```text
+ActiveDirectory
+```
+
+وده بالضبط الـ workflow اللي المادة بتشرحه.
+
+---
+
+## 4. Get-ADDomain
+
+أول enumeration حقيقي:
+
+```powershell
+Get-ADDomain
+```
+
+ده من أهم commands لأنك بتاخد منه **معلومات أساسية عن الـ domain**.
+
+مثلاً في الـ output بتاع اللاب:
+
+```text
+DNSRoot       : INLANEFREIGHT.LOCAL
+DomainSID     : S-1-5-21-...
+Forest        : INLANEFREIGHT.LOCAL
+DomainMode    : Windows2016Domain
+PDCEmulator   : ACADEMY-EA-DC01...
+RIDMaster     : ACADEMY-EA-DC01...
+```
+
+وكمان:
+
+```text
+ChildDomains : {LOGISTICS.INLANEFREIGHT.LOCAL}
+```
+
+يعني فيه child domain.
+
+### أهم حاجات تبص عليها
+
+#### DNSRoot
+
+```text
+INLANEFREIGHT.LOCAL
+```
+
+ده اسم الـ domain.
+
+#### DomainSID
+
+مثلاً:
+
+```text
+S-1-5-21-3842939050-3880317879-2865463114
+```
+
+ده الـ SID الأساسي للـ domain.
+
+#### Forest
+
+```text
+INLANEFREIGHT.LOCAL
+```
+
+بيعرفك الـ forest اللي الـ domain موجود فيه.
+
+#### ChildDomains
+
+```text
+LOGISTICS.INLANEFREIGHT.LOCAL
+```
+
+وده مهم جدًا لأن وجود child domains يفتحلك مجال تفكر في **trust relationships** والتنقل بين domains.
+
+---
+
+## 5. Get-ADUser والـ SPN
+
+دلوقتي نبدأ ندور على users.
+
+الأمر:
+
+```powershell
+Get-ADUser -Filter {ServicePrincipalName -ne "$null"} -Properties ServicePrincipalName
+```
+
+خلينا نفككه:
+
+```text
+Get-ADUser
+```
+
+هات AD users.
+
+```text
+-Filter
+```
+
+حددلي users بناءً على condition.
+
+والـ condition:
+
+```powershell
+ServicePrincipalName -ne "$null"
+```
+
+يعني:
+
+> هات الـ users اللي عندهم `ServicePrincipalName` متعيّن.
+
+وفي الـ output مثلاً:
+
+```text
+Name              : adfs
+SamAccountName    : adfs
+ServicePrincipalName : {adfsconnect/azure01...}
+```
+
+وفي account تاني:
+
+```text
+Name              : BACKUPAGENT
+SamAccountName    : backupagent
+ServicePrincipalName : {backupjob/veam001...}
+```
+
+### ليه الـ SPN مهم؟
+
+لأن الـ accounts اللي عليها SPNs ممكن تكون مرشحة لـ **Kerberoasting**.
+
+يعني هنا إحنا لسه **بنenumerate**.
+
+مش معنى إننا لقينا SPN إن الحساب vulnerable بشكل مؤكد.
+
+لكن بنقول:
+
+> الحساب ده interesting، خليه في الـ notes ونفحصه في مرحلة Kerberoasting.
+
+وده بالضبط framing المادة.
+
+---
+
+## 6. Trust Enumeration
+
+بعد كده:
+
+```powershell
+Get-ADTrust -Filter *
+```
+
+ده بيسألك:
+
+> الـ domain ده عامل Trust مع مين؟
+
+في المثال فيه:
+
+```text
+INLANEFREIGHT.LOCAL
+        ↕
+LOGISTICS.INLANEFREIGHT.LOCAL
+```
+
+و:
+
+```text
+INLANEFREIGHT.LOCAL
+        ↕
+FREIGHTLOGISTICS.LOCAL
+```
+
+وده مهم جدًا.
+
+لأن AD environment ممكن يكون أكبر من الـ domain اللي إنت واقف فيه.
+
+### أهم fields
+
+#### Direction
+
+```text
+Bidirectional
+```
+
+يعني الـ trust في الاتجاهين.
+
+#### IntraForest
+
+```text
+True
+```
+
+يعني trust داخل نفس الـ forest.
+
+أما:
+
+```text
+IntraForest : False
+ForestTransitive : True
+```
+
+فده في المثال الثاني يشير لـ forest trust.
+
+المادة بتوضح إن معلومات الـ trusts هتبقى مهمة لاحقًا عند دراسة child-to-parent وcross-forest attack paths.
+
+---
+
+## 7. Group Enumeration
+
+نعمل:
+
+```powershell
+Get-ADGroup -Filter * | select name
+```
+
+ده معناه:
+
+```text
+Get-ADGroup -Filter *
+```
+
+هات كل الـ groups.
+
+وبعدين:
+
+```powershell
+| select name
+```
+
+خليلي الـ output يعرض الاسم بس.
+
+فتشوف حاجات زي:
+
+```text
+Administrators
+Backup Operators
+Domain Admins
+Enterprise Admins
+Schema Admins
+Remote Management Users
+...
+```
+
+### ليه الـ groups أهم من مجرد users؟
+
+لأن في AD الـ privilege غالبًا مش بيتحدد من الـ user نفسه فقط.
+
+ممكن:
+
+```text
+User
+ ↓
+Group
+ ↓
+Privileged Group
+ ↓
+Privilege
+```
+
+فلازم تفهم membership.
+
+---
+
+## 8. Detailed Group Info
+
+مثلاً لقينا:
+
+```text
+Backup Operators
+```
+
+نقدر نعمل:
+
+```powershell
+Get-ADGroup -Identity "Backup Operators"
+```
+
+هيطلعلك:
+
+```text
+GroupCategory : Security
+GroupScope    : DomainLocal
+Name          : Backup Operators
+SID           : S-1-5-32-551
+```
+
+إحنا كده عرفنا الـ group نفسه.
+
+لكن السؤال الأهم:
+
+> مين جواه؟
+
+---
+
+## 9. Group Membership
+
+```powershell
+Get-ADGroupMember -Identity "Backup Operators"
+```
+
+النتيجة في اللاب:
+
+```text
+name          : BACKUPAGENT
+SamAccountName: backupagent
+objectClass   : user
+```
+
+وده interesting جدًا.
+
+عندك:
+
+```text
+backupagent
+      ↓
+Backup Operators
+```
+
+فلو في assessment لقيت طريقة للسيطرة على `backupagent`، لازم تفتكر إن الحساب ده عنده membership مهمة.
+
+المادة نفسها بتستخدم المثال ده لتوضيح إن membership دي ممكن تكون جزء من طريق يؤدي للسيطرة على الـ domain.
+
+---
+
+## 10. المشكلة: Manual Enumeration
+
+هنا بيظهر عيب كبير.
+
+لو عندك:
+
+- 3,000 users
+    
+- 500 groups
+    
+- 500 computers
+    
+- nested groups
+    
+- trusts
+    
+- shares
+    
+- ACLs
+    
+
+وتبدأ تعمل:
+
+```text
+Get group
+   ↓
+Get members
+   ↓
+Get nested groups
+   ↓
+Get permissions
+   ↓
+Get computers
+```
+
+هتغرق في data.
+
+وده السبب إن أدوات زي:
+
+```text
+PowerView
+BloodHound
+```
+
+مهمة جدًا.
+
+---
+
+## 11. PowerView
+
+PowerView عبارة عن PowerShell tool للـ AD reconnaissance.
+
+المادة بتوصفه إنه يقدر يساعدك في:
+
+- users
+    
+- computers
+    
+- groups
+    
+- ACLs
+    
+- trusts
+    
+- logged-in users
+    
+- shares
+    
+- passwords
+    
+- SPNs
+    
+- Kerberoasting
+    
+
+وغيرها.
+
+الفكرة:
+
+```text
+ActiveDirectory Module
+        ↓
+Built-in enumeration
+
+PowerView
+        ↓
+More flexible / deeper enumeration
+```
+
+---
+
+## 12. أهم PowerView Commands
+
+خلينا نفهمهم كـ categories بدل ما نحفظهم عشوائي.
+
+### Domain
+
+```powershell
+Get-Domain
+Get-DomainController
+```
+
+تعرف:
+
+> الـ domain والـ DCs.
+
+### Users
+
+```powershell
+Get-DomainUser
+```
+
+users.
+
+### Computers
+
+```powershell
+Get-DomainComputer
+```
+
+machines.
+
+### Groups
+
+```powershell
+Get-DomainGroup
+Get-DomainGroupMember
+```
+
+groups + memberships.
+
+### OUs
+
+```powershell
+Get-DomainOU
+```
+
+الـ Organizational Units.
+
+### ACLs
+
+```powershell
+Find-InterestingDomainAcl
+```
+
+تدور على ACLs interesting.
+
+### GPO
+
+```powershell
+Get-DomainGPO
+Get-DomainPolicy
+```
+
+### Local enumeration
+
+```powershell
+Get-NetLocalGroup
+Get-NetLocalGroupMember
+Get-NetShare
+Get-NetSession
+```
+
+### Admin access
+
+```powershell
+Test-AdminAccess
+```
+
+### Threaded / broad enumeration
+
+```powershell
+Find-DomainUserLocation
+Find-DomainShare
+Find-InterestingDomainShareFile
+Find-LocalAdminAccess
+```
+
+### Trusts
+
+```powershell
+Get-DomainTrust
+Get-ForestTrust
+Get-DomainForeignUser
+Get-DomainForeignGroupMember
+Get-DomainTrustMapping
+```
+
+الـ table الموجودة في الملف بتجمع الوظائف دي وتصنفها حسب نوع الـ enumeration.
+
+---
+
+## 13. Get-DomainUser
+
+مثلاً عايزين user معين:
+
+```powershell
+Get-DomainUser -Identity mmorgan -Domain inlanefreight.local
+```
+
+ونقدر نختار properties معينة:
+
+```powershell
+| Select-Object -Property name,samaccountname,description,memberof,whencreated,pwdlastset,lastlogontimestamp,accountexpires,admincount,userprincipalname,serviceprincipalname,useraccountcontrol
+```
+
+هنا أنت بتعمل profiling للـ account.
+
+مثلاً:
+
+```text
+name            : Matthew Morgan
+samaccountname  : mmorgan
+memberof        : {...}
+pwdlastset      : ...
+lastlogontimestamp : ...
+admincount      : 1
+userprincipalname : mmorgan@inlanefreight.local
+serviceprincipalname :
+useraccountcontrol : NORMAL_ACCOUNT, DONT_EXPIRE_PASSWORD, DONT_REQ_PREAUTH
+```
+
+### حاجات interesting
+
+```text
+admincount : 1
+```
+
+دي attribute مهمة جدًا في الـ AD enumeration.
+
+وكمان:
+
+```text
+DONT_EXPIRE_PASSWORD
+DONT_REQ_PREAUTH
+```
+
+خصائص تستحق إنك تاخد بالك منها وتعملها correlation مع باقي الـ data.
+
+---
+
+## 14. Nested Groups — من أخطر الحاجات
+
+دي نقطة مهمة جدًا.
+
+الأمر:
+
+```powershell
+Get-DomainGroupMember -Identity "Domain Admins" -Recurse
+```
+
+الـ:
+
+```text
+-Recurse
+```
+
+مهم جدًا.
+
+ليه؟
+
+لأن ممكن يكون عندك:
+
+```text
+Domain Admins
+      ↓
+Secadmins
+      ↓
+spong1990
+```
+
+يعني `spong1990` مش لازم يكون مكتوب مباشرة كعضو في Domain Admins.
+
+هو ممكن يكون:
+
+```text
+User
+ ↓
+Group
+ ↓
+Group
+ ↓
+Domain Admins
+```
+
+وبالتالي يرث الـ privilege.
+
+في المثال، الـ output بيظهر `Secadmins` كـ nested group داخل `Domain Admins`، وأعضاء المجموعة يرثوا صلاحيات Domain Admin.
+
+### ودي واحدة من أهم أفكار AD enumeration
+
+متبصش فقط:
+
+```text
+Who is Domain Admin?
+```
+
+بص:
+
+```text
+Who can become Domain Admin through membership?
+```
+
+---
+
+## 15. Trust Mapping باستخدام PowerView
+
+```powershell
+Get-DomainTrustMapping
+```
+
+ده أوسع شوية لأنه بيحاول يرسم الـ trust relationships اللي شايفها.
+
+في المثال:
+
+```text
+INLANEFREIGHT.LOCAL
+        ↕
+LOGISTICS.INLANEFREIGHT.LOCAL
+```
+
+و:
+
+```text
+INLANEFREIGHT.LOCAL
+        ↕
+FREIGHTLOGISTICS.LOCAL
+```
+
+وده بيخليك تبدأ تفكر في الـ environment كـ:
+
+```text
+Forest
+ ├── Domain A
+ │
+ ├── Child Domain
+ │
+ └── External Forest
+```
+
+مش مجرد جهاز واحد أو domain واحد.
+
+---
+
+### 16. Test-AdminAccess
+
+دلوقتي سؤال مهم جدًا:
+
+> الحساب بتاعي Admin على أنهي machines؟
+
+PowerView:
+
+```powershell
+Test-AdminAccess -ComputerName ACADEMY-EA-MS01
+```
+
+النتيجة:
+
+```text
+ComputerName       IsAdmin
+------------       -------
+ACADEMY-EA-MS01    True
+```
+
+يعني:
+
+```text
+Current User
+      ↓
+Local Administrator
+      ↓
+ACADEMY-EA-MS01
+```
+
+وده مهم جدًا في **lateral movement mapping**.
+
+---
+
+## 17. Finding SPNs مرة تانية
+
+PowerView يوفر طريقة أبسط:
+
+```powershell
+Get-DomainUser -SPN -Properties samaccountname,ServicePrincipalName
+```
+
+فتشوف:
+
+```text
+adfsconnect/...       adfs
+backupjob/...          backupagent
+MSSQLSvc/...           sqldev
+MSSQLSvc/...           sqlprod
+...
+```
+
+ودي accounts محتملة للاهتمام في مرحلة Kerberoasting.
+
+---
+
+## 18. SharpView
+
+PowerView أساسه PowerShell.
+
+لكن أحيانًا البيئة تكون hardened ضد استخدام PowerShell.
+
+هنا يأتي:
+
+```text
+SharpView
+```
+
+وهو **.NET port of PowerView**.
+
+يعني نفس الفكرة تقريبًا لكن executable مبني بـ .NET.
+
+مثلاً:
+
+```powershell
+.\SharpView.exe Get-DomainUser -Help
+```
+
+هيعرضلك arguments الخاصة بالـ function.
+
+وبعدين:
+
+```powershell
+.\SharpView.exe Get-DomainUser -Identity forend
+```
+
+يقدر يطلع معلومات المستخدم والـ LDAP search اللي حصل.
+
+الفكرة مش إن SharpView "أقوى" بشكل سحري.
+
+الفكرة:
+
+```text
+PowerView
+   ↓
+PowerShell-based
+
+SharpView
+   ↓
+.NET-based
+```
+
+وده بيديك alternative حسب قيود البيئة.
+
+---
+
+## 19. Shares
+
+دي من أهم أجزاء الـ enumeration.
+
+الـ shares ممكن تحتوي على:
+
+```text
+passwords
+configuration files
+SSH keys
+authentication files
+scripts
+backup files
+sensitive documents
+```
+
+خصوصًا:
+
+```text
+IT
+Infrastructure
+Development
+HR
+Finance
+```
+
+المشكلة هنا ممكن تكون:
+
+```text
+Low-privileged user
+       ↓
+Readable Share
+       ↓
+Sensitive File
+       ↓
+Credential
+       ↓
+Higher Privilege
+```
+
+المادة بتوضح إن overly permissive shares ممكن تسبب disclosure لبيانات حساسة، خصوصًا HR والـ medical/legal وغيرها.
+
+---
+
+## 20. Snaffler
+
+بدل ما تعمل hunting يدوي على مئات الـ shares، عندك:
+
+```text
+Snaffler
+```
+
+وظيفته باختصار:
+
+```text
+Domain
+ ↓
+Hosts
+ ↓
+Shares
+ ↓
+Readable directories
+ ↓
+Files
+ ↓
+Interesting / sensitive files
+```
+
+والمادة بتذكر إنه يحتاج تشغيله من domain-joined host أو domain-user context.
+
+الأمر:
+
+```powershell
+Snaffler.exe -s -d inlanefreight.local -o snaffler.log -v data
+```
+
+نفككه:
+
+```text
+-s
+```
+
+اطبع النتائج على الشاشة.
+
+```text
+-d inlanefreight.local
+```
+
+حدد الـ domain.
+
+```text
+-o snaffler.log
+```
+
+احفظ output في logfile.
+
+```text
+-v data
+```
+
+حدد مستوى الـ verbosity.
+
+---
+
+## 21. Snaffler Output
+
+في المثال بيلاقي shares:
+
+```text
+Department Shares
+User Shares
+ZZZ_archive
+```
+
+وبعدين ملفات interesting:
+
+```text
+GroupBackup.kdb
+ShowReset.key
+WriteUse.kwallet
+ProtectStep.key
+StopTrace.ppk
+...
+```
+
+وكمان:
+
+```text
+.sqldump
+.mdf
+.key
+.ppk
+.keychain
+.psafe3
+```
+
+### هنا ركز
+
+Snaffler مش بيقولك:
+
+> "دي credentials مؤكدة."
+
+هو بيقول:
+
+> "الملف ده يستحق التحقيق."
+
+مثلاً:
+
+```text
+.ppk
+```
+
+ممكن يكون SSH private key.
+
+```text
+.kdb
+```
+
+ممكن يكون KeePass database.
+
+```text
+.psafe3
+```
+
+ممكن يكون Password Safe database.
+
+لكن **لازم تفحص المحتوى والسياق** قبل ما تستنتج إن فيه credential فعلي.
+
+---
+
+## 22. BloodHound
+
+وهنا بنوصل لأهم tool في الـ section.
+
+المشكلة عندنا بقت:
+
+```text
+Users
+Groups
+Computers
+Sessions
+Shares
+ACLs
+GPOs
+SPNs
+Trusts
+Local Admin
+RDP
+WinRM
+...
+```
+
+الـ data كتير جدًا.
+
+BloodHound يحول العلاقات دي إلى **graph**.
+
+بدل:
+
+```text
+1000 lines of output
+```
+
+تشوف:
+
+```text
+User
+ ↓
+Group
+ ↓
+Computer
+ ↓
+Session
+ ↓
+Privileged User
+```
+
+وتبدأ تشوف الـ attack paths.
+
+المادة بتصف BloodHound بأنه قادر على تحديد attack paths عن طريق تحليل العلاقات بين objects.
+
+---
+
+## 23. SharpHound
+
+من Windows، الـ collector هو:
+
+```text
+SharpHound.exe
+```
+
+مثلاً:
+
+```powershell
+.\SharpHound.exe -c All --zipfilename ILFREIGHT
+```
+
+معناها:
+
+```text
+-c All
+```
+
+اجمع كل collection methods المطلوبة.
+
+و:
+
+```text
+--zipfilename ILFREIGHT
+```
+
+سمّي ملف الـ output بهذا الاسم.
+
+---
+
+## 24. SharpHound بيجمع إيه؟
+
+من الـ help:
+
+```text
+Group
+LocalAdmin
+GPOLocalGroup
+Session
+LoggedOn
+Trusts
+ACL
+Container
+RDP
+ObjectProps
+DCOM
+...
+```
+
+يعني بيجمع علاقات ومعلومات عن:
+
+- group membership
+    
+- local admin
+    
+- sessions
+    
+- logged-on users
+    
+- trusts
+    
+- ACLs
+    
+- GPO-related relationships
+    
+- RDP
+    
+- DCOM
+    
+- properties
+    
+
+---
+
+## 25. بعد الـ Collection
+
+SharpHound ينتج dataset.
+
+بعد كده تدخله في:
+
+```text
+BloodHound GUI
+```
+
+في المثال المادة بتستخدم:
+
+```text
+Upload Data
+```
+
+وتختار الـ `.zip` الناتج.
+
+بعد الـ ingestion تبدأ مرحلة التحليل.
+
+---
+
+## 26. BloodHound مش بس للـ Attack Paths
+
+دي نقطة مهمة جدًا.
+
+المادة بتوضح إن BloodHound ممكن يساعدك في findings دفاعية كمان.
+
+مثلاً:
+
+```text
+Find Computers with Unsupported Operating Systems
+```
+
+ممكن تكتشف:
+
+```text
+Windows 7
+Windows Server 2008
+```
+
+لكن قبل ما تكتب finding لازم تتأكد إن الجهاز فعلًا live، لأن ممكن يكون مجرد record قديم في AD.
+
+---
+
+## 27. Local Admin Query
+
+Query مهمة:
+
+```text
+Find Computers where Domain Users are Local Admin
+```
+
+لو لقيت:
+
+```text
+DOMAIN USERS
+      ↓
+Local Admin
+      ↓
+Machine
+```
+
+فده misconfiguration خطير.
+
+لأن أي account تحت Domain Users ممكن، حسب باقي الظروف، يكون عنده local admin access على الجهاز.
+
+والمادة بتشير إن ده ممكن يسمح بعد ذلك بالوصول لمعلومات حساسة أو credentials على تلك الأجهزة.
+
+---
+
+## 28. الصورة الكبيرة للـ Section كله
+
+لو عايز تحفظ الـ workflow، متحفظش 50 command.
+
+احفظ الـ logic ده:
+
+```text
+          VALID DOMAIN CREDS
+                  │
+                  ▼
+        ┌───────────────────┐
+        │ Domain Enumeration│
+        └─────────┬─────────┘
+                  │
+       ┌──────────┼──────────┐
+       ▼          ▼          ▼
+     Users      Groups      Computers
+       │          │          │
+       ▼          ▼          ▼
+     SPNs      Membership   Sessions
+       │          │          │
+       ▼          ▼          ▼
+ Kerberoast   Privilege    Local Admin
+ Candidates     Paths         Access
+       │          │          │
+       └──────────┼──────────┘
+                  ▼
+              Shares
+                  │
+                  ▼
+        Sensitive Files/Secrets
+                  │
+                  ▼
+               Trusts
+                  │
+                  ▼
+          Other Domains/Forests
+                  │
+                  ▼
+             BloodHound
+                  │
+                  ▼
+            ATTACK PATHS
+```
+
+والأدوات بتتقسم تقريبًا كده:
+
+|الهدف|Tool|
+|---|---|
+|Basic AD enumeration|ActiveDirectory PowerShell|
+|Flexible AD recon|PowerView|
+|PowerView بدون الاعتماد على PowerShell|SharpView|
+|Hunt sensitive files/shares|Snaffler|
+|Collect AD relationships|SharpHound|
+|Visualize/correlate relationships|BloodHound|
+
+---
+
+## 29. الفرق بين الجزء اللي فات والجزء ده
+
+وده مهم جدًا بالنسبة لك في الـ pentesting:
+
+```text
+Linux Attack Host
+       │
+       ├── NetExec
+       ├── SMBMap
+       ├── rpcclient
+       ├── Windapsearch
+       └── BloodHound.py
+```
+
+مقابل:
+
+```text
+Windows Attack Host
+       │
+       ├── ActiveDirectory Module
+       ├── PowerView
+       ├── SharpView
+       ├── Snaffler
+       └── SharpHound
+              │
+              ▼
+          BloodHound
+```
+
+**الـ objective واحد تقريبًا، لكن الأدوات والـ execution environment مختلفين.**
+
+وأهم skill هنا مش إنك تعرف:
+
+```powershell
+Get-DomainUser
+```
+
+لكن إنك تشوف:
+
+```text
+User
+ ↓
+Group
+ ↓
+Privilege
+ ↓
+Computer
+ ↓
+Session
+ ↓
+Credential
+ ↓
+Another Account
+ ↓
+Another Privilege
+```
+
+وتقدر تحول الـ enumeration data دي إلى **قصة attack path منطقية**.
+
+وفي آخر الجزء، المادة بتجهزك للسؤال المهم: ماذا لو عندك shell محدود وممنوع تنزل tools أو تعمل import؟ وهنا الانتقال بيكون إلى **Living Off The Land**.
+
+
+
+# Layer 16
+
+
+> بدل ما تنزل SharpHound / PowerView / Snaffler على الجهاز، تستخدم الأدوات الموجودة أصلًا في Windows وAD.
+
+وده مهم جدًا في الـPentest لأن البيئة ممكن تكون **managed host + مفيش Internet + ممنوع/فشل تحميل tools**، وكمان تحميل أدوات خارجية ممكن يرفع احتمالية اكتشافك.
+
+---
+
+## 1. أول حاجة: اعرف أنت على إيه
+
+### `hostname`
+
+```powershell
+hostname
+```
+
+بيجيب اسم الجهاز.
+
+مثلاً:
+
+```text
+ACADEMY-EA-MS01
+```
+
+---
+
+### إصدار Windows
+
+```powershell
+[System.Environment]::OSVersion.Version
+```
+
+يعني تعرف الـOS version والـrevision.
+
+---
+
+### الـPatches
+
+```cmd
+wmic qfe get Caption,Description,HotFixID,InstalledOn
+```
+
+ده يوريك الـhotfixes والـpatches المثبتة.
+
+مفيد جدًا لأنك بتعرف:
+
+- الجهاز محدث ولا لأ
+    
+- فيه patches ناقصة؟
+    
+- هل فيه software/version قديم؟
+    
+
+---
+
+## 2. اعرف الـNetwork بتاع الجهاز
+
+### `ipconfig /all`
+
+```cmd
+ipconfig /all
+```
+
+منه تعرف:
+
+- IP
+    
+- DNS
+    
+- Gateway
+    
+- Network adapter
+    
+- DHCP
+    
+- Domain-related configuration
+    
+
+---
+
+### اعرف الـDomain
+
+من CMD:
+
+```cmd
+echo %USERDOMAIN%
+```
+
+مثلاً:
+
+```text
+INLANEFREIGHT
+```
+
+وده اسم الـdomain اللي الجهاز تابع ليه.
+
+---
+
+### اعرف الـDomain Controller
+
+```cmd
+echo %logonserver%
+```
+
+مثلاً:
+
+```text
+\\ACADEMY-EA-DC01
+```
+
+يعني الجهاز بيتعامل مع الـDC ده.
+
+---
+
+## 3. بدل كل ده ممكن تستخدم `systeminfo`
+
+```cmd
+systeminfo
+```
+
+دي بتجمعلك معلومات كتير عن الجهاز في output واحد.
+
+HTB بيذكر إن استخدام command واحد ممكن ينتج logs أقل من تشغيل commands كتير منفصلة، لكن طبعًا ده **مش معناه إنه غير مراقب**.
+
+---
+
+## 4. PowerShell مهم جدًا
+
+شوف الـmodules الموجودة:
+
+```powershell
+Get-Module
+```
+
+مثلاً ممكن تلاقي:
+
+```text
+ActiveDirectory
+Microsoft.PowerShell.Utility
+PSReadline
+```
+
+`Get-Module` هنا بيساعدك تعرف إيه المتاح على الجهاز بالفعل.
+
+
+
+---
+
+## 5. Environment Variables
+
+```powershell
+Get-ChildItem Env: | ft Key,Value
+```
+
+دي بتعرض environment variables.
+
+ممكن تلاقي حاجات زي:
+
+```text
+COMPUTERNAME
+USERDOMAIN
+USERNAME
+USERPROFILE
+PATH
+PSModulePath
+```
+
+مثلاً:
+
+```text
+COMPUTERNAME = ACADEMY-EA-MS01
+USERDOMAIN   = INLANEFREIGHT
+USERNAME     = ACADEMY-EA-MS01$
+```
+
+### ليه ده مهم؟
+
+لأنك بتبني صورة سريعة:
+
+```text
+مين أنا؟
+        ↓
+أنا على أنهي جهاز؟
+        ↓
+الجهاز تابع لأنهي Domain؟
+        ↓
+إيه الـPATH والـModules المتاحة؟
+```
+
+---
+
+## 6. `qwinsta` — هل أنا لوحدي؟
+
+دي مهمة جدًا.
+
+```cmd
+qwinsta
+```
+
+ممكن تشوف:
+
+```text
+SESSIONNAME    USERNAME    ID    STATE
+console        forend      1     Active
+```
+
+معناها إن فيه user اسمه `forend` عامل interactive session على الجهاز.
+
+ليه يهمك؟
+
+لأنك لو بتعمل assessment من جهاز شخص تاني، وجوده على نفس الجهاز ممكن يكون operational concern.
+
+---
+
+## 7. `arp -a`
+
+```cmd
+arp -a
+```
+
+دي بتعرض الأجهزة اللي الجهاز الحالي عنده ARP entries ليها.
+
+مثلاً:
+
+```text
+172.16.5.5
+172.16.5.130
+172.16.5.240
+```
+
+مش معناها إن دي كل الأجهزة الموجودة في الشبكة.
+
+لكن معناها:
+
+> الأجهزة دي ظهرت للـhost الحالي على Layer 2/ARP.
+
+وده ممكن يساعدك تكتشف network neighbors.
+
+---
+
+## 8. `route print`
+
+```cmd
+route print
+```
+
+دي من أهم الحاجات.
+
+بتقولك:
+
+**الجهاز ده عارف يوصل لأنهي networks؟**
+
+مثلاً في اللاب:
+
+```text
+10.129.0.0/16
+172.16.4.0/23
+```
+
+لو لقيت network مش موجودة في الـnetwork segment اللي أنت فاكره، دي تستحق investigation.
+
+HTB بيشير إن routing information ممكن تكشف network segments إضافية وقد تكون مهمة في الـpivoting.
+
+---
+
+## 9. WMI
+
+WMI = **Windows Management Instrumentation**
+
+فكر فيه كـframework بيسمحلك تستعلم عن Windows والـdomain information.
+
+مثلاً:
+
+```cmd
+wmic computersystem get Name,Domain,Manufacturer,Model,Username,Roles /format:List
+```
+
+أو:
+
+```cmd
+wmic process list /format:list
+```
+
+أو:
+
+```cmd
+wmic useraccount list /format:list
+```
+
+أو:
+
+```cmd
+wmic group list /format:list
+```
+
+أو:
+
+```cmd
+wmic ntdomain list /format:list
+```
+
+الـ`wmic ntdomain` بالذات ممكن يوريك معلومات عن الـdomain والـDCs.
+
+---
+
+## 10. Net Commands
+
+دي من أهم أجزاء الـmodule.
+
+مثلاً:
+
+### كل Domain Users
+
+```cmd
+net user /domain
+```
+
+### معلومات User معين
+
+```cmd
+net user wrouse /domain
+```
+
+### كل Domain Groups
+
+```cmd
+net group /domain
+```
+
+### أعضاء Domain Admins
+
+```cmd
+net group "Domain Admins" /domain
+```
+
+### أجهزة الـDomain
+
+```cmd
+net group "domain computers" /domain
+```
+
+### Domain Controllers
+
+```cmd
+net group "Domain Controllers" /domain
+```
+
+### Password Policy
+
+```cmd
+net accounts /domain
+```
+
+### Shares
+
+```cmd
+net view /all /domain
+```
+
+الـmodule بيجمع مجموعة كبيرة من الـ`net` commands للـusers/groups/computers/DCs/password policy/shares.
+
+---
+
+## 11. نقطة مهمة جدًا: `net1`
+
+الـmodule بيشرح إن:
+
+```cmd
+net1
+```
+
+بينفذ نفس وظائف `net`، وبيُذكر كطريقة لتجنب بعض الـdetections المبنية بشكل ساذج على string `net`.
+
+لكن خلي بالك:
+
+**ده مش bypass سحري للـEDR.**
+
+لو الـEDR بيراقب process behavior أو command execution بشكل كويس، تغيير `net` إلى `net1` مش هيخليك invisible.
+
+---
+
+## 12. Dsquery
+
+وده من أهم الأدوات في الجزء ده.
+
+```cmd
+dsquery user
+```
+
+يجيب الـAD users.
+
+مثلاً:
+
+```text
+CN=Administrator,CN=Users,DC=INLANEFREIGHT,DC=LOCAL
+CN=Guest,CN=Users,DC=INLANEFREIGHT,DC=LOCAL
+...
+```
+
+والـcomputer:
+
+```cmd
+dsquery computer
+```
+
+يجيب أجهزة الـDomain.
+
+---
+
+## 13. LDAP Filters
+
+هنا الجزء اللي لازم تفهمه كويس، مش تحفظه.
+
+مثلاً:
+
+```text
+userAccountControl:1.2.840.113556.1.4.803:=8192
+```
+
+معناه إنك بتعمل LDAP matching على `userAccountControl` باستخدام bitmask.
+
+الـ`8192` في المثال بتستخدم للبحث عن Domain Controllers.
+
+يعني:
+
+```cmd
+dsquery * -filter "(userAccountControl:1.2.840.113556.1.4.803:=8192)" -limit 5 -attr sAMAccountName
+```
+
+طلع:
+
+```text
+ACADEMY-EA-DC01$
+```
+
+---
+
+## الـOID نفسه
+
+عندك 3 مهمين في الـmodule:
+
+```text
+1.2.840.113556.1.4.803
+```
+
+Exact bit match.
+
+```text
+1.2.840.113556.1.4.804
+```
+
+Any matching bit.
+
+```text
+1.2.840.113556.1.4.1941
+```
+
+بيستخدم مع Distinguished Name والـmembership/ownership relationships.
+
+---
+
+## 14. Logical Operators
+
+تقدر تعمل filters مركبة.
+
+### AND
+
+```text
+&
+```
+
+مثلاً:
+
+```text
+(&(objectClass=user)(userAccountControl:1.2.840.113556.1.4.803:=64))
+```
+
+يعني:
+
+```text
+Object لازم يكون User
+        AND
+UAC bit معين لازم يكون موجود
+```
+
+### NOT
+
+```text
+!
+```
+
+### OR
+
+```text
+|
+```
+
+وده بيخليك تعمل LDAP queries دقيقة بدل ما تجيب كل حاجة وتفلترها يدويًا.
+
+---
+
+## الخلاصة اللي عايزك تخرج بيها
+
+الـLiving Off The Land workflow في اللاب تقريبًا:
+
+```text
+Initial Foothold
+      │
+      ▼
+hostname / systeminfo
+      │
+      ▼
+whoami / USERDOMAIN / logonserver
+      │
+      ▼
+ipconfig / arp / route
+      │
+      ▼
+qwinsta
+      │
+      ▼
+PowerShell / WMI
+      │
+      ▼
+net commands
+      │
+      ▼
+dsquery
+      │
+      ▼
+LDAP Filters
+      │
+      ▼
+فهم الـDomain والـHosts والـUsers والـGroups
+```
+
+والـmindset هنا أهم من الأدوات:
+
+**لو مفيش SharpHound، PowerView، Snaffler، أو Internet → لسه عندك Windows نفسه كـenumeration toolkit.**
+
+وده بالضبط سبب إن الجزء ده جه بعد Credentialed Enumeration وقبل **Kerberoasting**.تمام، الملف الجديد هو جزء **Living Off the Land** من HTB، وده بيكمل مباشرة بعد Credentialed Enumeration.
+
+الفكرة الأساسية هنا:
+
+> بدل ما تنزل SharpHound / PowerView / Snaffler على الجهاز، تستخدم الأدوات الموجودة أصلًا في Windows وAD.
+
+وده مهم جدًا في الـPentest لأن البيئة ممكن تكون **managed host + مفيش Internet + ممنوع/فشل تحميل tools**، وكمان تحميل أدوات خارجية ممكن يرفع احتمالية اكتشافك.
+
+## أهم حاجة بالنسبة لسؤالك السابق عن SharpHound
+
+الـ`SharpHound.exe` اللي حاولت تشغله **مش جزء من Living Off The Land**.
+
+يعني لو أنت داخل اللاب وعايز تكمل الجزء الجديد، مش المفروض أصلًا تعتمد على:
+
+```powershell
+.\SharpHound.exe -c All
+```
+
+الجزء ده هيبدأ معاك بأدوات Windows الأصلية.
+
+---
+
+## 1. أول حاجة: اعرف أنت على إيه
+
+### `hostname`
+
+```powershell
+hostname
+```
+
+بيجيب اسم الجهاز.
+
+مثلاً:
+
+```text
+ACADEMY-EA-MS01
+```
+
+---
+
+### إصدار Windows
+
+```powershell
+[System.Environment]::OSVersion.Version
+```
+
+يعني تعرف الـOS version والـrevision.
+
+---
+
+### الـPatches
+
+```cmd
+wmic qfe get Caption,Description,HotFixID,InstalledOn
+```
+
+ده يوريك الـhotfixes والـpatches المثبتة.
+
+مفيد جدًا لأنك بتعرف:
+
+- الجهاز محدث ولا لأ
+    
+- فيه patches ناقصة؟
+    
+- هل فيه software/version قديم؟
+    
+
+---
+
+## 2. اعرف الـNetwork بتاع الجهاز
+
+### `ipconfig /all`
+
+```cmd
+ipconfig /all
+```
+
+منه تعرف:
+
+- IP
+    
+- DNS
+    
+- Gateway
+    
+- Network adapter
+    
+- DHCP
+    
+- Domain-related configuration
+    
+
+---
+
+### اعرف الـDomain
+
+من CMD:
+
+```cmd
+echo %USERDOMAIN%
+```
+
+مثلاً:
+
+```text
+INLANEFREIGHT
+```
+
+وده اسم الـdomain اللي الجهاز تابع ليه.
+
+---
+
+### اعرف الـDomain Controller
+
+```cmd
+echo %logonserver%
+```
+
+مثلاً:
+
+```text
+\\ACADEMY-EA-DC01
+```
+
+يعني الجهاز بيتعامل مع الـDC ده.
+
+---
+
+## 3. بدل كل ده ممكن تستخدم `systeminfo`
+
+```cmd
+systeminfo
+```
+
+دي بتجمعلك معلومات كتير عن الجهاز في output واحد.
+
+HTB بيذكر إن استخدام command واحد ممكن ينتج logs أقل من تشغيل commands كتير منفصلة، لكن طبعًا ده **مش معناه إنه غير مراقب**.
+
+---
+
+## 4. PowerShell مهم جدًا
+
+شوف الـmodules الموجودة:
+
+```powershell
+Get-Module
+```
+
+مثلاً ممكن تلاقي:
+
+```text
+ActiveDirectory
+Microsoft.PowerShell.Utility
+PSReadline
+```
+
+`Get-Module` هنا بيساعدك تعرف إيه المتاح على الجهاز بالفعل.
+
+وده مرتبط جدًا بالخطأ اللي ظهرلك قبل كده.
+
+أنت كنت بتحاول تشغل:
+
+```powershell
+.\SharpHound.exe
+```
+
+وده external executable.
+
+لكن Living Off The Land بيقول:
+
+**شوف الأول إيه الموجود أصلًا على الجهاز واستخدمه.**
+
+---
+
+## 5. Environment Variables
+
+```powershell
+Get-ChildItem Env: | ft Key,Value
+```
+
+دي بتعرض environment variables.
+
+ممكن تلاقي حاجات زي:
+
+```text
+COMPUTERNAME
+USERDOMAIN
+USERNAME
+USERPROFILE
+PATH
+PSModulePath
+```
+
+مثلاً:
+
+```text
+COMPUTERNAME = ACADEMY-EA-MS01
+USERDOMAIN   = INLANEFREIGHT
+USERNAME     = ACADEMY-EA-MS01$
+```
+
+### ليه ده مهم؟
+
+لأنك بتبني صورة سريعة:
+
+```text
+مين أنا؟
+        ↓
+أنا على أنهي جهاز؟
+        ↓
+الجهاز تابع لأنهي Domain؟
+        ↓
+إيه الـPATH والـModules المتاحة؟
+```
+
+---
+
+## 6. `qwinsta` — هل أنا لوحدي؟
+
+دي مهمة جدًا.
+
+```cmd
+qwinsta
+```
+
+ممكن تشوف:
+
+```text
+SESSIONNAME    USERNAME    ID    STATE
+console        forend      1     Active
+```
+
+معناها إن فيه user اسمه `forend` عامل interactive session على الجهاز.
+
+ليه يهمك؟
+
+لأنك لو بتعمل assessment من جهاز شخص تاني، وجوده على نفس الجهاز ممكن يكون operational concern.
+
+---
+
+# 7. `arp -a`
+
+```cmd
+arp -a
+```
+
+دي بتعرض الأجهزة اللي الجهاز الحالي عنده ARP entries ليها.
+
+مثلاً:
+
+```text
+172.16.5.5
+172.16.5.130
+172.16.5.240
+```
+
+مش معناها إن دي كل الأجهزة الموجودة في الشبكة.
+
+لكن معناها:
+
+> الأجهزة دي ظهرت للـhost الحالي على Layer 2/ARP.
+
+وده ممكن يساعدك تكتشف network neighbors.
+
+---
+
+# 8. `route print`
+
+```cmd
+route print
+```
+
+دي من أهم الحاجات.
+
+بتقولك:
+
+**الجهاز ده عارف يوصل لأنهي networks؟**
+
+مثلاً في اللاب:
+
+```text
+10.129.0.0/16
+172.16.4.0/23
+```
+
+لو لقيت network مش موجودة في الـnetwork segment اللي أنت فاكره، دي تستحق investigation.
+
+HTB بيشير إن routing information ممكن تكشف network segments إضافية وقد تكون مهمة في الـpivoting.
+
+---
+
+# 9. WMI
+
+WMI = **Windows Management Instrumentation**
+
+فكر فيه كـframework بيسمحلك تستعلم عن Windows والـdomain information.
+
+مثلاً:
+
+```cmd
+wmic computersystem get Name,Domain,Manufacturer,Model,Username,Roles /format:List
+```
+
+أو:
+
+```cmd
+wmic process list /format:list
+```
+
+أو:
+
+```cmd
+wmic useraccount list /format:list
+```
+
+أو:
+
+```cmd
+wmic group list /format:list
+```
+
+أو:
+
+```cmd
+wmic ntdomain list /format:list
+```
+
+الـ`wmic ntdomain` بالذات ممكن يوريك معلومات عن الـdomain والـDCs.
+
+---
+
+# 10. Net Commands
+
+دي من أهم أجزاء الـmodule.
+
+مثلاً:
+
+### كل Domain Users
+
+```cmd
+net user /domain
+```
+
+### معلومات User معين
+
+```cmd
+net user wrouse /domain
+```
+
+### كل Domain Groups
+
+```cmd
+net group /domain
+```
+
+### أعضاء Domain Admins
+
+```cmd
+net group "Domain Admins" /domain
+```
+
+### أجهزة الـDomain
+
+```cmd
+net group "domain computers" /domain
+```
+
+### Domain Controllers
+
+```cmd
+net group "Domain Controllers" /domain
+```
+
+### Password Policy
+
+```cmd
+net accounts /domain
+```
+
+### Shares
+
+```cmd
+net view /all /domain
+```
+
+الـmodule بيجمع مجموعة كبيرة من الـ`net` commands للـusers/groups/computers/DCs/password policy/shares.
+
+---
+
+# 11. نقطة مهمة جدًا: `net1`
+
+الـmodule بيشرح إن:
+
+```cmd
+net1
+```
+
+بينفذ نفس وظائف `net`، وبيُذكر كطريقة لتجنب بعض الـdetections المبنية بشكل ساذج على string `net`.
+
+لكن خلي بالك:
+
+**ده مش bypass سحري للـEDR.**
+
+لو الـEDR بيراقب process behavior أو command execution بشكل كويس، تغيير `net` إلى `net1` مش هيخليك invisible.
+
+---
+
+# 12. Dsquery
+
+وده من أهم الأدوات في الجزء ده.
+
+```cmd
+dsquery user
+```
+
+يجيب الـAD users.
+
+مثلاً:
+
+```text
+CN=Administrator,CN=Users,DC=INLANEFREIGHT,DC=LOCAL
+CN=Guest,CN=Users,DC=INLANEFREIGHT,DC=LOCAL
+...
+```
+
+والـcomputer:
+
+```cmd
+dsquery computer
+```
+
+يجيب أجهزة الـDomain.
+
+---
+
+# 13. LDAP Filters
+
+هنا الجزء اللي لازم تفهمه كويس، مش تحفظه.
+
+مثلاً:
+
+```text
+userAccountControl:1.2.840.113556.1.4.803:=8192
+```
+
+معناه إنك بتعمل LDAP matching على `userAccountControl` باستخدام bitmask.
+
+الـ`8192` في المثال بتستخدم للبحث عن Domain Controllers.
+
+يعني:
+
+```cmd
+dsquery * -filter "(userAccountControl:1.2.840.113556.1.4.803:=8192)" -limit 5 -attr sAMAccountName
+```
+
+طلع:
+
+```text
+ACADEMY-EA-DC01$
+```
+
+---
+
+## الـOID نفسه
+
+عندك 3 مهمين في الـmodule:
+
+```text
+1.2.840.113556.1.4.803
+```
+
+Exact bit match.
+
+```text
+1.2.840.113556.1.4.804
+```
+
+Any matching bit.
+
+```text
+1.2.840.113556.1.4.1941
+```
+
+بيستخدم مع Distinguished Name والـmembership/ownership relationships.
+
+---
+
+# 14. Logical Operators
+
+تقدر تعمل filters مركبة.
+
+### AND
+
+```text
+&
+```
+
+مثلاً:
+
+```text
+(&(objectClass=user)(userAccountControl:1.2.840.113556.1.4.803:=64))
+```
+
+يعني:
+
+```text
+Object لازم يكون User
+        AND
+UAC bit معين لازم يكون موجود
+```
+
+### NOT
+
+```text
+!
+```
+
+### OR
+
+```text
+|
+```
+
+وده بيخليك تعمل LDAP queries دقيقة بدل ما تجيب كل حاجة وتفلترها يدويًا.
+
+---
+
+## الخلاصة اللي عايزك تخرج بيها
+
+الـLiving Off The Land workflow في اللاب تقريبًا:
+
+```text
+Initial Foothold
+      │
+      ▼
+hostname / systeminfo
+      │
+      ▼
+whoami / USERDOMAIN / logonserver
+      │
+      ▼
+ipconfig / arp / route
+      │
+      ▼
+qwinsta
+      │
+      ▼
+PowerShell / WMI
+      │
+      ▼
+net commands
+      │
+      ▼
+dsquery
+      │
+      ▼
+LDAP Filters
+      │
+      ▼
+فهم الـDomain والـHosts والـUsers والـGroups
+```
+
+والـmindset هنا أهم من الأدوات:
+
+**لو مفيش SharpHound، PowerView، Snaffler، أو Internet → لسه عندك Windows نفسه كـenumeration toolkit.**
+
+وده بالضبط سبب إن الجزء ده جه بعد Credentialed Enumeration وقبل **Kerberoasting**.
